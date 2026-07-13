@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: Учебный API задач
+  version: 1.0.0
+  description: Детерминированное HTTP-представление контракта TaskService.
+servers:
+  - url: http://localhost
+paths:
+  /tasks:
+    post:
+      summary: Создать задачу
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Задача создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Название пустое или уже занято активной задачей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                emptyTitle:
+                  value:
+                    message: Название задачи не может быть пустым
+                duplicateTitle:
+                  value:
+                    message: Активная задача с таким названием уже существует
+    get:
+      summary: Получить список задач
+      operationId: listTasks
+      responses:
+        '200':
+          description: Задачи по возрастанию идентификатора
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+  /tasks/{task_id}/complete:
+    post:
+      summary: Завершить задачу
+      operationId: completeTask
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: Целочисленный идентификатор задачи
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Задача переведена в статус done
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Задача 99 не найдена
+components:
+  schemas:
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Название задачи; внешние пробелы удаляются
+          minLength: 1
+          example: Проверить контракт
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          example: 1
+        title:
+          type: string
+          example: Проверить контракт
+        status:
+          type: string
+          enum:
+            - open
+            - done
+          example: open
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Задача 99 не найдена

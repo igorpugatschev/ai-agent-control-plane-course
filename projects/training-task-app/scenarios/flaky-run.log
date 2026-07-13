@@ -1,0 +1,10 @@
+2026-07-13T09:00:00+07:00 запуск: PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
+2026-07-13T09:00:00+07:00 результат: 5 passed in 0.01s
+2026-07-13T09:00:04+07:00 запуск: PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
+2026-07-13T09:00:04+07:00 результат: 4 passed, 1 failed in 0.02s
+2026-07-13T09:00:04+07:00 падение: test_create_task_assigns_integer_id; ожидался id=1, получен id=2
+2026-07-13T09:00:08+07:00 запуск: PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
+2026-07-13T09:00:08+07:00 результат: 5 passed in 0.01s
+2026-07-13T09:00:12+07:00 вывод: сбой воспроизвёлся один раз из трёх запусков; в команду и исходники изменения не вносились
+
+Гипотеза: состояние TaskService или счётчик идентификаторов ошибочно разделяется между тестами. Проверка должна подтвердить изоляцию экземпляров и отсутствие глобального состояния.
