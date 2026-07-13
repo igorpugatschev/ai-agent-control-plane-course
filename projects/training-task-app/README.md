@@ -49,7 +49,7 @@ print(service.complete_task(task.id))
 ## Учебные сценарии
 
 - [`scenarios/ambiguous-change.md`](scenarios/ambiguous-change.md) показывает запрос, которому не хватает границ и критериев готовности;
-- [`scenarios/defect-report.md`](scenarios/defect-report.md) содержит воспроизводимый дефект с ожидаемым и фактическим результатом;
+- [`scenarios/defect-report.md`](scenarios/defect-report.md) содержит documentary historical case с ожидаемым и документированным фактическим результатом; для воспроизведения нужен отдельный pinned defective artifact;
 - [`scenarios/flaky-run.log`](scenarios/flaky-run.log) хранит историю повторяющегося нестабильного запуска;
 - [`scenarios/stale-documentation.md`](scenarios/stale-documentation.md) показывает расхождение старой документации с текущим требованием.
 

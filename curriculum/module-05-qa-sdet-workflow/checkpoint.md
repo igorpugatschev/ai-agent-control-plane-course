@@ -48,7 +48,7 @@ templates/handoff.md
 
 ### Defect fixture
 
-`projects/training-task-app/scenarios/defect-report.md` описывает **historical functional defect**: в дефектной версии после `complete_task` повторное создание того же названия ошибочно дает `ValueError`, хотя expected result - новая задача с ID `2`. Это воспроизводимый product defect в указанной дефектной версии. В current стенде `test_title_can_be_reused_after_task_is_done` уже является regression guard; его наличие и live output нужно подтвердить exact command, поэтому fixture не объявляется current failure без нового наблюдения.
+`projects/training-task-app/scenarios/defect-report.md` - **documentary historical case**, а не pinned defective revision или executable defect fixture. Он документирует утверждение, что после `complete_task` повторное создание того же названия в дефектной версии давало `ValueError`, хотя expected result - новая задача с ID `2`. В current стенде `test_title_can_be_reused_after_task_is_done` уже является regression guard; `11 passed` означает `not reproduced` в current checkout. Evidence package обязан записать `not reproduced`, missing pinned defective revision/fixture и `STOP` с запросом pinned artifact, прежде чем назвать defect reproducible. Не меняйте code или tests, чтобы создать failure; после получения pinned artifact учебные steps и minimal check сохраняют смысл defect reproduction.
 
 ### Flaky fixture
 
@@ -102,8 +102,9 @@ for path in requirements.md api/openapi.yaml tests/test_service.py defect-report
   grep -R -q "$path" artifacts/module-05 || exit 1
 done
 for term in "given" "when" "then" "Observed evidence" "201" "400" "404" \
-  "not applicable" "historical functional defect" "root cause unknown" \
-  "severity" "priority" "regression scope" "traceability" "STOP"; do
+  "not applicable" "documentary historical case" "not reproduced" \
+  "pinned" "root cause unknown" "severity" "priority" "regression scope" \
+  "traceability" "STOP"; do
   grep -R -qi "$term" artifacts/module-05 || exit 1
 done
 PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
@@ -129,7 +130,7 @@ git diff --check
 ## Критические дефекты
 
 - **Release without traceability:** release/go выдан без source-to-check matrix и observed evidence.
-- **Fixture confusion:** historical defect назван current failure без live evidence или flaky назван confirmed root cause.
+- **Fixture confusion:** documentary historical case без pinned artifact назван reproducible/current defect, либо flaky назван confirmed root cause.
 - **Unbounded flaky retry:** нестабильность скрыта повторным green run без сохраненных outcomes.
 - **Layer confusion:** Python unit test выдан за HTTP endpoint или обязательный UI check выдуман без UI scope.
 - **Role violation:** QA/SDET self-approves release, либо risk reviewer/deployer выполняет действие вместо documented decision.
@@ -138,7 +139,7 @@ git diff --check
 ## Локальный маршрут исправления
 
 - release without traceability -> добавьте source, condition, check и observed evidence в `traceability-matrix.md`; верните verdict к STOP и повторите command;
-- fixture confusion -> перепишите classification по exact source, сохраните defect steps или все flaky outcomes, root cause оставьте `unknown`;
+- fixture confusion -> для defect-report запишите documentary historical case, `not reproduced`, missing pinned revision/fixture и STOP/request for pinned artifact; сохраните defect steps или все flaky outcomes, root cause оставьте `unknown`;
 - unbounded retry -> внесите неизмененные command/source, каждый run и isolation next action в `triage-and-release-gate.md`;
 - layer confusion -> перенесите HTTP claim в schema review, UI в optional branch `not applicable`, пока нет approved scope;
 - role violation -> передайте QA/SDET report coordinator-у, approval - risk reviewer-у, final acceptance - human owner;
@@ -146,4 +147,4 @@ git diff --check
 
 ## Результат checkpoint
 
-Передайте coordinator три Module 5 артефакта и один verdict. Handoff содержит scope, source paths, exact command/output, schema/UI status, defect/flaky classification, regression scope, release criteria, missing evidence, risk, receiver, одно следующее действие и resume condition. При отсутствующей traceability итог - `STOP`, а не release.
+Передайте coordinator три Module 5 артефакта и один verdict. Handoff содержит scope, source paths, exact command/output, schema/UI status, defect/flaky classification, `not reproduced` и missing pinned revision/fixture для documentary historical case, regression scope, release criteria, missing evidence, risk, receiver, одно следующее действие и resume condition. При отсутствующей traceability или pinned artifact итог - `STOP`, а не release.

@@ -40,7 +40,7 @@
 | Источник и условие | Проверка | Наблюдение и риск | Owner |
 | --- | --- | --- | --- |
 | `requirements.md`: пустой title отклоняется | `test_empty_title_is_rejected` | pytest: `11 passed`; высокий риск валидации input | QA/SDET при failure |
-| `requirements.md`: done-title можно использовать снова | `test_title_can_be_reused_after_task_is_done` | pytest: `11 passed`; regression guard defect fixture | implementation через coordinator |
+| `requirements.md`: done-title можно использовать снова | `test_title_can_be_reused_after_task_is_done` | pytest: `11 passed`; current checkout: `not reproduced` для documentary historical case без pinned defect artifact | implementation через coordinator |
 | `api/openapi.yaml`: `POST /tasks` возвращает Task или Error | schema review: 201/400, `title`, `id`, `status`, `message` | API contract check, HTTP server отсутствует | QA/SDET |
 | `requirements.md`: list идет по `id` | `test_list_tasks_returns_tasks_in_id_order` | pytest: `11 passed`; средний риск порядка | QA/SDET |
 ```
@@ -70,7 +70,7 @@ scope; до него endpoint-level release claim запрещен.
 
 ```text
 Прочитай только projects/training-task-app/requirements.md,
-projects/training-task-app/api/openapi.yaml и tests/test_service.py. Не меняй
+projects/training-task-app/api/openapi.yaml и projects/training-task-app/tests/test_service.py. Не меняй
 файлы и не запускай release. Верни Markdown-матрицу source -> given/when/then
 -> named test или schema review -> риск -> coverage gap. Отдели Python service
 checks от HTTP contract checks и верни STOP для неподтвержденного endpoint.

@@ -77,8 +77,8 @@ Release verdict не выдаю; для него нужны traceability и от
 ### Необязательный prompt для живого агента
 
 ```text
-Работай как QA/SDET только read/search/run scope. Прочитай requirements.md,
-api/openapi.yaml, tests/test_service.py и agents/qa-sdet.md. Не меняй файлы,
+Работай как QA/SDET только read/search/run scope. Прочитай projects/training-task-app/requirements.md,
+projects/training-task-app/api/openapi.yaml, projects/training-task-app/tests/test_service.py и agents/qa-sdet.md. Не меняй файлы,
 не добавляй HTTP server/UI, не commit/push и не выдавай release approval. Верни
 workflow с API schema review, stable pytest evidence fields, optional Playwright
 branch, STOP при contract conflict и один receiver coordinator.
