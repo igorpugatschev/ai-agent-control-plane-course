@@ -97,10 +97,10 @@ Blueprint v1 готов только для этапа согласования,
 и подготовить воспроизводимый путь его проверки.
 
 Контекст:
-- ambiguous-change.md: исходный запрос и принятая учебная граница;
-- requirements.md: человекочитаемое поведение;
-- api/openapi.yaml: формальный HTTP-контракт;
-- tests/test_service.py: наблюдаемые проверки.
+- `projects/training-task-app/scenarios/ambiguous-change.md`: исходный запрос и принятая учебная граница;
+- `projects/training-task-app/requirements.md`: человекочитаемое поведение;
+- `projects/training-task-app/api/openapi.yaml`: формальный HTTP-контракт;
+- `projects/training-task-app/tests/test_service.py`: наблюдаемые проверки.
 
 Роли:
 - Product owner принимает поведение и расширение scope;
@@ -148,7 +148,7 @@ cp templates/control-plane-blueprint.md artifacts/module-01/control-plane-bluepr
 Заполните файл по шагам:
 
 1. Перенесите цель, включения, исключения и владельцев из `task-boundary-contract.md`; не расширяйте их.
-2. Добавьте четыре локальных источника: scenario, requirements, OpenAPI и tests. Для каждого напишите, какое решение он подтверждает.
+2. Добавьте четыре локальных источника: `projects/training-task-app/scenarios/ambiguous-change.md`, `projects/training-task-app/requirements.md`, `projects/training-task-app/api/openapi.yaml` и `projects/training-task-app/tests/test_service.py`. Для каждого напишите, какое решение он подтверждает.
 3. Опишите Owner, Implementer и Reviewer через ответственность, вход, выход, разрешенное действие и запрет.
 4. Постройте workflow из 6-8 шагов от intake до human approval. После каждого ключевого шага укажите следующий gate или stop-ветку.
 5. Для инструментов `read/search`, `git diff` и `pytest` укажите разрешенное действие. Отдельно запишите запрещенные без approval внешние изменения.
@@ -192,14 +192,14 @@ grep -qiE 'Owner|владел' artifacts/module-01/control-plane-blueprint.md
 
 - цель и scope совпадают с boundary contract;
 - каждый источник контекста связан с конкретным решением;
-- у каждой роли есть ответственность, разрешение и запрет;
+- у каждой роли явно указаны ответственность, входы, выходы, разрешения и запреты;
 - workflow имеет успешный путь и stop-ветви;
 - каждый gate содержит условие, evidence, владельца и реакцию на неуспех;
 - необратимые действия требуют человеческого approval;
 - риски имеют снижение и владельца;
 - внешний источник не требуется для понимания или проверки обязательного пути.
 
-Локальный correction route: если структурная команда падает, исправьте отсутствующий раздел только в `control-plane-blueprint.md` и повторите ее. Если walkthrough требует догадки, найдите первый неясный переход и добавьте к нему роль, наблюдение и исход `pass/fail`. Если scope расходится, исправьте blueprint по `task-boundary-contract.md`, не меняя контракт задним числом.
+Локальный correction route: если структурная команда падает, исправьте отсутствующий раздел только в `control-plane-blueprint.md` и повторите ее. Если walkthrough требует догадки, найдите первый неясный переход и добавьте к нему роль, наблюдение и исход `pass/fail`. Если источники расходятся, сопоставьте `projects/training-task-app/requirements.md`, `projects/training-task-app/api/openapi.yaml` и `projects/training-task-app/tests/test_service.py`, затем зафиксируйте STOP до решения Product owner. Если scope расходится, исправьте blueprint по `task-boundary-contract.md`, не меняя контракт задним числом.
 
 ## Типичные ошибки
 
@@ -218,7 +218,7 @@ grep -qiE 'Owner|владел' artifacts/module-01/control-plane-blueprint.md
 3. Может ли один человек выполнять несколько ролей, и какое разделение все равно нужно сохранить?
 4. Какие четыре элемента делают gate проверяемым?
 5. Чем approval отличается от evidence?
-6. Как должен вести себя workflow при конфликте requirements и OpenAPI?
+6. Как должен вести себя workflow при конфликте `projects/training-task-app/requirements.md` и `projects/training-task-app/api/openapi.yaml`?
 7. Почему correction route должен указывать локальный артефакт и повторную проверку?
 8. Какие части blueprint v1 будут уточняться в следующих модулях?
 
