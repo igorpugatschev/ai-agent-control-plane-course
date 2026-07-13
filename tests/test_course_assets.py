@@ -5,6 +5,9 @@ import sys
 from pathlib import Path
 
 
+LINK_RE = re.compile(r"\[[^]]+\]\(([^)]+)\)")
+
+
 TEMPLATES = (
     "control-plane-blueprint.md",
     "context-map.md",
@@ -593,3 +596,54 @@ def test_task11_module07_self_check_covers_mappings_runs_and_safety_evidence():
         "residual risk",
     ):
         assert marker in self_check
+
+
+def test_internal_markdown_links_resolve():
+    roots = (
+        Path("README.md"),
+        Path("docs"),
+        Path("curriculum"),
+        Path("agents"),
+        Path("projects"),
+        Path("templates"),
+        Path("assessments"),
+        Path("glossary"),
+    )
+    files = [roots[0]]
+    for root in roots[1:]:
+        files.extend(root.rglob("*.md"))
+    for path in files:
+        text = path.read_text(encoding="utf-8")
+        for raw_target in LINK_RE.findall(text):
+            target = raw_target.split("#", 1)[0]
+            if not target or "://" in target or target.startswith("mailto:"):
+                continue
+            assert (path.parent / target).resolve().exists(), f"{path}: {raw_target}"
+
+
+def test_source_matrix_contains_all_21_lessons():
+    text = Path("docs/lesson-source-matrix.md").read_text(encoding="utf-8")
+    rows = re.findall(r"^\|\s*(?:[1-9]|1[0-9]|2[01])\s*\|", text, flags=re.MULTILINE)
+    assert len(rows) == 21
+
+
+def test_seven_checkpoint_guides_exist():
+    guides = sorted(Path("assessments/checkpoints").glob("module-*.md"))
+    assert len(guides) == 7
+
+
+def test_student_project_tracks_exist():
+    required = (
+        Path("projects/starter-control-plane/control-plane.yaml"),
+        Path("projects/reference-control-plane/control-plane.yaml"),
+        Path("projects/reference-control-plane/decision-log.md"),
+        Path("projects/capstone.md"),
+    )
+    assert all(path.is_file() for path in required)
+
+
+def test_curriculum_has_no_unresolved_authoring_markers():
+    markers = ("TO" + "DO", "TB" + "D", "FIX" + "ME")
+    for path in Path("curriculum").rglob("*.md"):
+        text = path.read_text(encoding="utf-8")
+        assert not any(marker in text for marker in markers), path

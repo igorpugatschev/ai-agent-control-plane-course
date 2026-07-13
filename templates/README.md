@@ -14,3 +14,9 @@
 - [Финальный отчет](final-report.md): итог, проверки и остаточные риски.
 
 Определения терминов доступны в [глоссарии](../glossary/terms.md). Шаблоны самодостаточны; [каталог достоверных источников](../docs/source-catalog.md) служит только для проверки и углубления.
+
+Следующее действие: возьмите форму, указанную в текущем уроке, и сохраните
+именованный artifact в [starter control plane](../projects/starter-control-plane/README.md).
+Полное отображение всех десяти форм в capstone находится в
+[capstone contract](../projects/capstone.md); после заполнения artifact
+проверьте его по соответствующему [checkpoint guide](../assessments/checkpoints/README.md).

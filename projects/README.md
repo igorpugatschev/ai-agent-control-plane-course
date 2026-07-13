@@ -1,29 +1,15 @@
-# Projects
+# Практические проекты
 
-В этой директории будут практические проекты курса.
+Выберите следующий шаг по этапу обучения:
 
-Каждый проект должен приводить к рабочему артефакту, а не только к конспекту.
+1. [Учебный стенд задач](training-task-app/README.md) - запустите локальные
+   тесты и используйте требования, OpenAPI и scenarios в уроках.
+2. [Starter control plane](starter-control-plane/README.md) - заполните свои
+   facts и накопленные artifacts, не меняя учебный стенд.
+3. [Reference control plane](reference-control-plane/README.md) - изучите
+   независимый completed example, но не копируйте его как ответ.
+4. [Capstone contract](capstone.md) - соберите и защитите собственный пакет
+   после Module 6.
 
-Текущий рабочий пример: [`training-task-app`](training-task-app/) — самодостаточный Python-стенд задач с тестами, требованиями, OpenAPI-контрактом и учебными сценариями.
-
-Примеры будущих проектов:
-
-- спроектировать agent workflow для code review;
-- спроектировать control plane для QA regression;
-- описать SDET workflow для автотестов и quality gates;
-- создать процесс анализа дефектов с evidence-based отчетом;
-- собрать документационный агентный контур для проекта;
-- подготовить capstone control plane для своей рабочей задачи.
-
-## Минимальный формат проекта
-
-Каждый проект должен включать:
-
-- цель;
-- контекст;
-- роли агентов;
-- workflow;
-- источники данных;
-- проверки качества;
-- ограничения;
-- пример результата.
+Для форм artifacts откройте [templates](../templates/README.md). Перед
+checkpoint или защитой используйте [assessment package](../assessments/README.md).

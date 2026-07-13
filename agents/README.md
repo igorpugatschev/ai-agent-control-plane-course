@@ -23,3 +23,7 @@
 Final irreversible-action approval дает только named human owner.
 
 Формы contracts и packages находятся в [templates/agent-role.md](../templates/agent-role.md), [templates/skill-contract.md](../templates/skill-contract.md) и [templates/handoff.md](../templates/handoff.md). Module 3 объясняет правила на русском и не требует API-ключа: [маршрут модуля](../curriculum/module-03-roles-and-skills/README.md).
+
+Следующее действие студента: после заполнения role, skill и handoff contracts
+пройдите [checkpoint 3](../curriculum/module-03-roles-and-skills/checkpoint.md),
+затем продолжайте [Module 4](../curriculum/module-04-development-workflow/README.md).
