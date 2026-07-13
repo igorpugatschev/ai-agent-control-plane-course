@@ -2,7 +2,7 @@
 
 Модуль продолжает единый control plane на учебном `TaskService`. Вместо вывода «тесты прошли» студент связывает источник требования, проверяемое условие, тест, наблюдение, дефект и решение о выпуске. QA/SDET владеет воспроизводимым evidence, но не final acceptance и не approval выпуска.
 
-К концу модуля вы создадите три связанных артефакта:
+К концу модуля вы создадите три связанных артефакта и пройдёте checkpoint:
 
 1. [От требований к проверяемым условиям](lesson-13-requirements-to-checks.md) - `artifacts/module-05/traceability-matrix.md`.
 2. [API/UI automation и тестовые агенты](lesson-14-api-ui-test-agents.md) - `artifacts/module-05/test-agent-workflow.md`.
