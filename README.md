@@ -14,6 +14,8 @@
 
 Подробно: [политика источников и самодостаточности](docs/source-policy.md).
 
+Канонический список проверенных первоисточников: [каталог достоверных источников](docs/source-catalog.md).
+
 ## Миссия курса
 
 Подготовить инженера, который умеет не просто пользоваться нейросетями, а проектировать рабочий AI-agent control plane:
@@ -71,6 +73,7 @@ AI Agent Control Plane Engineer проектирует систему вокру
 ├── docs/
 │   ├── course-mission.md
 │   ├── source-policy.md
+│   ├── source-catalog.md
 │   └── repository-structure.md
 ├── curriculum/
 │   └── roadmap.md
