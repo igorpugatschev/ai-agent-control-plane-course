@@ -254,14 +254,21 @@ def extract_self_check_block(guide: str) -> str:
 
 
 def has_complete_tier_1_record(catalog: str, url: str) -> bool:
-    record = re.search(
-        rf"^### .+?\n(?:(?!^### ).)*?^- Роль: .*Tier 1.*\n(?:(?!^### ).)*?"
-        rf"^- Scope: .*\n(?:(?!^### ).)*?^- Canonical URL: \[[^]]+\]\({re.escape(url)}\)\n"
-        rf"(?:(?!^### ).)*?^- Checked: 2026-07-13\.\n(?:(?!^### ).)*?^Ограничения:",
-        catalog,
-        re.MULTILINE | re.DOTALL,
-    )
-    return record is not None
+    for section in re.split(r"(?=^### )", catalog, flags=re.MULTILINE):
+        if f"]({url})" not in section:
+            continue
+        return all(
+            marker in section
+            for marker in (
+                "- Роль:",
+                "Tier 1",
+                "- Scope:",
+                "- Canonical URL:",
+                "- Checked: 2026-07-13.",
+                "Ограничения:",
+            )
+        )
+    return False
 
 
 def test_required_assets_alias_matches_templates():
@@ -514,8 +521,8 @@ def test_task11_lesson_source_matrix_and_catalog_are_traceable():
     assert "catalog extensions" in matrix
 
     catalog = Path("docs/source-catalog.md").read_text(encoding="utf-8")
-    tier_1_start = catalog.index("## Tier 1:")
-    tier_2_start = catalog.index("## Tier 2:")
+    tier_1_start = re.search(r"^## Tier 1:", catalog, re.MULTILINE).start()
+    tier_2_start = re.search(r"^## Tier 2:", catalog, re.MULTILINE).start()
     tier_1_region = catalog[tier_1_start:tier_2_start]
     for url, _topic in CANONICAL_LESSON_SOURCE_MAPPING.values():
         assert url in tier_1_region or has_complete_tier_1_record(catalog, url), url

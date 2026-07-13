@@ -110,6 +110,19 @@
 - Core задает framework outcomes, а локальные role contracts и safety gates
   определяют учебный workflow и permissions.
 
+### NIST AI RMF Playbook
+
+- Роль: Tier 1 companion guidance для практического применения AI RMF.
+- Scope: действия Govern, Map, Measure и Manage при failure injection,
+  корректирующих мерах и повторной оценке в Module 7.
+- Canonical URL: [NIST AI RMF Playbook](https://airc.nist.gov/airmf-resources/playbook/)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- Playbook предлагает варианты действий, но не является готовым workflow,
+  test oracle или approval contract конкретного control plane.
+
 ### OWASP LLM01:2025 Prompt Injection
 
 - Роль: Tier 1 security guidance для угрозы prompt injection.
@@ -213,6 +226,18 @@
 
 - GitHub-hosted behavior, runners и secrets are platform-specific; CI output не
   является product approval и не обязателен для offline course route.
+
+### Git documentation
+
+- Роль: Tier 1 официальная документация распределенной системы контроля версий Git.
+- Scope: diff, status, commit и history evidence для engineering gates в Module 4.
+- Canonical URL: [Git documentation](https://git-scm.com/docs)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- Git фиксирует состояние и историю, но успешный commit не заменяет review,
+  test evidence, product acceptance или human approval.
 
 ### Anthropic Claude Platform
 
