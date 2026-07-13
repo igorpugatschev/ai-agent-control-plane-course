@@ -1,3 +1,6 @@
+import json
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -16,6 +19,33 @@ TEMPLATES = (
 
 # Compatibility name for consumers of the task brief's asset contract.
 REQUIRED_ASSETS = TEMPLATES
+
+CAPSTONE_TEMPLATE_MAPPING = (
+    ("control-plane-blueprint.md", "blueprint.md"),
+    ("context-map.md", "source-map.md"),
+    ("agent-role.md", "roles.md"),
+    ("skill-contract.md", "skill-contracts.md"),
+    ("handoff.md", "handoffs.md"),
+    ("workflow.md", "workflow.md"),
+    ("review-gate.md", "review-gate.md"),
+    ("stop-gate.md", "stop-gate.md"),
+    ("decision-log.md", "decision-log.md"),
+    ("final-report.md", "final-report.md"),
+)
+
+CAPSTONE_MAPPING_PATHS = (
+    Path("curriculum/module-07-capstone/lesson-19-assemble-control-plane.md"),
+    Path("projects/starter-control-plane/README.md"),
+    Path("projects/capstone.md"),
+    Path("curriculum/module-07-capstone/checkpoint.md"),
+    Path("curriculum/module-07-capstone/lesson-21-audit-defense-roadmap.md"),
+)
+
+CAPSTONE_PACKAGE_MANIFEST_PATHS = (
+    Path("curriculum/module-07-capstone/lesson-19-assemble-control-plane.md"),
+    Path("projects/capstone.md"),
+    Path("curriculum/module-07-capstone/checkpoint.md"),
+)
 
 TERMS = (
     "LLM",
@@ -106,6 +136,62 @@ def test_all_templates_exist_and_have_acceptance_criteria():
         path = Path("templates") / name
         assert path.is_file(), path
         assert "## Критерии готовности" in path.read_text(encoding="utf-8")
+
+
+def test_reference_control_plane_is_self_contained_and_rerunnable():
+    reference = Path("projects/reference-control-plane")
+    contract = json.loads((reference / "control-plane.yaml").read_text(encoding="utf-8"))
+
+    assert contract["project"]["name"] == "product-documentation-maintenance"
+    assert contract["evidence"]["local_check"] == (
+        "python3 scripts/check_reference_control_plane.py -> exit 0"
+    )
+    for path in (
+        "docs/product/change-requests/CR-42.md",
+        "docs/product/index.md",
+        "docs/product/guides/review-process.md",
+        "incoming/external-comment.txt",
+        "evidence/CR-42-local-check.txt",
+        "review/CR-42-local-review.md",
+        "decision-log.md",
+        "scripts/check_reference_control_plane.py",
+    ):
+        assert (reference / path).is_file(), path
+
+    result = subprocess.run(
+        [sys.executable, str(reference / "scripts/check_reference_control_plane.py")],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == "Reference control plane check: PASS\n"
+    assert result.stderr == ""
+
+
+def test_starter_and_capstone_map_every_template_to_a_required_deliverable():
+    starter = Path("projects/starter-control-plane")
+    starter_contract = json.loads((starter / "control-plane.yaml").read_text(encoding="utf-8"))
+    assert starter_contract["project"]["name"].startswith("<student:")
+
+    for template, artifact in CAPSTONE_TEMPLATE_MAPPING:
+        mapping = f"`templates/{template}` -> `artifacts/capstone/{artifact}`"
+        for path in CAPSTONE_MAPPING_PATHS:
+            assert mapping in path.read_text(encoding="utf-8"), (path, mapping)
+
+        starter_artifact = starter / "artifacts/capstone" / artifact
+        assert starter_artifact.is_file(), starter_artifact
+        assert "<student:" in starter_artifact.read_text(encoding="utf-8")
+
+    for path in CAPSTONE_MAPPING_PATHS:
+        text = path.read_text(encoding="utf-8")
+        assert "`control-plane.yaml`" in text, path
+
+
+def test_capstone_manifest_keeps_the_package_readme():
+    for path in CAPSTONE_PACKAGE_MANIFEST_PATHS:
+        assert "artifacts/capstone/README.md" in path.read_text(encoding="utf-8"), path
 
 
 def test_glossary_defines_required_terms():

@@ -22,6 +22,7 @@
 ### Evidence
 - `control-plane.yaml`: trusted sources, role permissions, gates и local check.
 - `docs/product/change-requests/CR-42.md`: source of intended documentation change.
+- `evidence/CR-42-local-check.txt`: committed output of the stdlib local check.
 - `review/CR-42-local-review.md`: required independent review record.
 
 ### Последствия

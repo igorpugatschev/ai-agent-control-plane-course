@@ -1,35 +1,60 @@
 # Starter control plane
 
-Это пустая, но исполнимая заготовка для собственного capstone. Она задает
-точные каталоги, поля и команды, но не принимает решения за студента: scope,
-источники, owners, roles, permissions, gates и verdicts остаются незаполненными.
-Не используйте reference project как шаблон ответа: сначала сформулируйте свой
-домен и bounded intended action.
+Это пустая, но исполнимая заготовка для собственного capstone. Все файлы ниже
+содержат только `<student: ...>` prompts: scope, источники, owners, роли, gates
+и verdicts студент заполняет собственными фактами. Не используйте reference
+project как ответ и не оставляйте placeholder на защите.
 
-## Структура, которую нужно создать в своем проекте
+## Точное дерево
 
 ```text
-artifacts/capstone/
-├── README.md                 # goal, scope, intended action
-├── source-map.md             # sources, trust, freshness, Source/Authority owner
-├── roles.md                  # contracts всех ролей
-├── workflow.md               # trigger, steps, branches, recovery
-├── gates.md                  # review/stop/approval conditions
-├── evidence-index.md         # paths, commands, outputs, decision IDs
-├── run-evidence.md           # N-01, F-01, F-02, F-03
-├── corrections.md            # failed gate -> correction -> re-run
-├── risk-report.md            # residual risks and owners
-├── final-report.md           # status, evidence, concerns, next owner
-└── defense-notes.md          # rubric scores and theory confirmation
-control-plane.yaml            # machine-readable field prompts
+projects/starter-control-plane/
+├── control-plane.yaml
+└── artifacts/capstone/
+    ├── README.md
+    ├── blueprint.md
+    ├── source-map.md
+    ├── roles.md
+    ├── skill-contracts.md
+    ├── handoffs.md
+    ├── workflow.md
+    ├── review-gate.md
+    ├── stop-gate.md
+    ├── decision-log.md
+    ├── evidence-index.md
+    ├── run-evidence.md
+    ├── corrections.md
+    ├── risk-report.md
+    ├── final-report.md
+    └── defense-notes.md
 ```
+
+`control-plane.yaml` обязателен: он повторяет field prompts из Markdown в
+machine-readable виде. Файл является JSON-compatible YAML, поэтому его можно
+проверить Python standard library `json` без PyYAML.
+
+## Обязательное отображение шаблонов
+
+| Шаблон и deliverable | Назначение в пакете |
+| --- | --- |
+| `templates/control-plane-blueprint.md` -> `artifacts/capstone/blueprint.md` | goal, scope, roles, gates и evidence |
+| `templates/context-map.md` -> `artifacts/capstone/source-map.md` | trust, freshness, Source owner и Authority owner |
+| `templates/agent-role.md` -> `artifacts/capstone/roles.md` | contracts всех ролей и separation of duties |
+| `templates/skill-contract.md` -> `artifacts/capstone/skill-contracts.md` | повторяемые local checks и их rights |
+| `templates/handoff.md` -> `artifacts/capstone/handoffs.md` | one receiver и next action |
+| `templates/workflow.md` -> `artifacts/capstone/workflow.md` | trigger, branches, recovery и routing |
+| `templates/review-gate.md` -> `artifacts/capstone/review-gate.md` | independent review before transition |
+| `templates/stop-gate.md` -> `artifacts/capstone/stop-gate.md` | STOP, safe step и resume condition |
+| `templates/decision-log.md` -> `artifacts/capstone/decision-log.md` | decisions, evidence и revisit condition |
+| `templates/final-report.md` -> `artifacts/capstone/final-report.md` | honest status, concerns и next owner |
+
+`evidence-index.md`, `run-evidence.md`, `corrections.md`, `risk-report.md` и
+`defense-notes.md` соединяют template deliverables в проверяемую защиту.
 
 ## Порядок заполнения
 
-1. Скопируйте `templates/context-map.md`, `agent-role.md`, `workflow.md`,
-   `review-gate.md`, `stop-gate.md`, `decision-log.md` и `final-report.md` в
-   назначенные artifacts.
-2. Заполните `control-plane.yaml` и Markdown только фактами своего домена.
+1. Замените prompts в `control-plane.yaml` и artifacts только фактами своего домена.
+2. Заполните десять mapped deliverables по одноименным шаблонам выше.
 3. Назовите trusted sources, untrusted data, freshness command, Source owner и
    Authority owner. Не выводите Authority owner из автора источника.
 4. Разделите implementation, reviewer, QA/SDET, coordinator, risk reviewer,
@@ -41,10 +66,16 @@ control-plane.yaml            # machine-readable field prompts
 ## Минимальная локальная проверка
 
 ```bash
-python3 -c "from pathlib import Path; print(Path('control-plane.yaml').is_file())"
+cd projects/starter-control-plane
+python3 -c "import json; print(json.load(open('control-plane.yaml', encoding='utf-8'))['schema_version'])"
 git diff --check
 ```
 
-YAML синтаксически валиден, когда его можно разобрать YAML parser-ом; Markdown
-содержит обязательное объяснение и evidence. Поля-подсказки в starter не
-являются готовыми decisions и должны быть заменены перед защитой.
+Expected output первой команды:
+
+```text
+1
+```
+
+Успешный parse доказывает только формат starter. Он не заменяет заполненные
+decisions, evidence и проверку capstone acceptance.

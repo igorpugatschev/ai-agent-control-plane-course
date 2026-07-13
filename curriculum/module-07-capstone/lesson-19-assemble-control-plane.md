@@ -2,8 +2,8 @@
 
 ## Результат урока
 
-Вы соберете `artifacts/capstone/README.md`, `source-map.md`, `roles.md`,
-`workflow.md`, `gates.md` и `evidence-index.md`. Это один связанный пакет,
+Вы соберете `control-plane.yaml` и полный `artifacts/capstone/` package из
+десяти mapped templates, evidence и audit records. Это один связанный пакет,
 где каждый важный вывод имеет trusted source, owner, проверку и получателя.
 
 ## Зачем это инженеру
@@ -15,8 +15,10 @@
 
 ## Теория
 
-Полный control plane связывает шесть контрактов: цель и scope, source map,
-роли, workflow, gates и evidence. Source map различает trusted instruction,
+Полный control plane связывает десять template contracts: blueprint, source
+map, role, skill, handoff, workflow, review gate, stop gate, decision log и
+final report. Их machine-readable counterpart - обязательный
+`control-plane.yaml`. Source map различает trusted instruction,
 рабочие данные и untrusted content; для каждого источника указывает freshness,
 Source owner и Authority owner. Роль описывает входы, выходы, разрешения,
 запреты, stop conditions и handoff. Workflow показывает ветви, recovery и
@@ -54,12 +56,26 @@ test, reviewer verdict и risk recommendation - evidence либо recommendation
 
 ## Практика
 
-1. Создайте каталог `artifacts/capstone/` и README с goal, included/excluded scope и intended action.
-2. Составьте `source-map.md` по `templates/context-map.md`: добавьте trusted requirements, tests/contract, untrusted data, freshness command и оба вида owner.
-3. Составьте `roles.md` по `templates/agent-role.md` для coordinator, implementation, reviewer, QA/SDET, risk reviewer, named human owner и separately named authorized executor. Для последних двух явно разделите approve/reject и execute.
-4. Составьте `workflow.md` по `templates/workflow.md`: intake -> context -> implementation -> QA/SDET -> review -> coordinator routing -> risk analysis when needed -> human decision -> authorized execution only when approved.
-5. Составьте `gates.md` по `templates/review-gate.md` и `templates/stop-gate.md`: source freshness, scope/permission, evidence/review и privileged-action gates.
-6. Составьте `evidence-index.md`: source SHA, diff, exact test command/output, review verdict, trace/decision ID, owner и receiver.
+1. Создайте `control-plane.yaml`, `artifacts/capstone/README.md` с goal/scope/intended action и остальные files по точному mapping ниже.
+2. Заполните source map: trusted requirements, tests/contract, untrusted data, freshness command и оба вида owner.
+3. Создайте role contracts для coordinator, implementation, reviewer, QA/SDET, risk reviewer, named human owner и separately named authorized executor. Для последних двух явно разделите approve/reject и execute.
+4. Составьте workflow: intake -> context -> implementation -> QA/SDET -> review -> coordinator routing -> risk analysis when needed -> human decision -> authorized execution only when approved.
+5. Проведите N-01, F-01 stale context, F-02 excess permission и F-03 weak evidence; сохраните evidence, corrections, risks и audit.
+
+### Обязательное отображение шаблонов
+
+| Шаблон и deliverable | Что проверяется |
+| --- | --- |
+| `templates/control-plane-blueprint.md` -> `artifacts/capstone/blueprint.md` | goal, scope, roles, gates и evidence |
+| `templates/context-map.md` -> `artifacts/capstone/source-map.md` | trust, freshness и оба owner |
+| `templates/agent-role.md` -> `artifacts/capstone/roles.md` | permissions, prohibitions, STOP и handoff |
+| `templates/skill-contract.md` -> `artifacts/capstone/skill-contracts.md` | repeatable procedure, rights и evidence |
+| `templates/handoff.md` -> `artifacts/capstone/handoffs.md` | one receiver, next action и resume |
+| `templates/workflow.md` -> `artifacts/capstone/workflow.md` | steps, branches, gates и recovery |
+| `templates/review-gate.md` -> `artifacts/capstone/review-gate.md` | independent review and verdict |
+| `templates/stop-gate.md` -> `artifacts/capstone/stop-gate.md` | blocked action, safe step и resume |
+| `templates/decision-log.md` -> `artifacts/capstone/decision-log.md` | decision, evidence, owner и revisit |
+| `templates/final-report.md` -> `artifacts/capstone/final-report.md` | status, concerns и next owner |
 
 ### Подготовленный локальный прогон
 
@@ -84,7 +100,11 @@ one safe next action and resume condition.
 ## Проверка результата
 
 ```bash
-for file in README.md source-map.md roles.md workflow.md gates.md evidence-index.md; do
+# Run from the capstone package root.
+python3 -c "import json; json.load(open('control-plane.yaml', encoding='utf-8'))"
+for file in README.md blueprint.md source-map.md roles.md skill-contracts.md handoffs.md \
+  workflow.md review-gate.md stop-gate.md decision-log.md final-report.md \
+  evidence-index.md run-evidence.md corrections.md risk-report.md defense-notes.md; do
   test -f "artifacts/capstone/$file" || exit 1
 done
 for term in "Source owner" "Authority owner" "intended action" "STOP" \
