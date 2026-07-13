@@ -34,6 +34,7 @@ Reviewer проходит одну matrix row до command/output и видит 
 ## Повторная команда
 
 ```bash
+set -euo pipefail
 test -s artifacts/module-05/traceability-matrix.md
 test -s artifacts/module-05/test-agent-workflow.md
 test -s artifacts/module-05/triage-and-release-gate.md

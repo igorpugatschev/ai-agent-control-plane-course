@@ -147,6 +147,38 @@ TASK11_SOURCE_RECORDS = {
     "Google Agent Development Kit documentation": "https://adk.dev/",
 }
 
+CANONICAL_LESSON_SOURCE_MAPPING = {
+    1: ("https://developers.openai.com/api/docs/guides/agents", "Различие model, tools и управляемого agent workflow"),
+    2: ("https://developers.openai.com/api/docs/guides/agents", "Instructions, tools и управляющий workflow как границы задачи"),
+    3: ("https://developers.openai.com/api/docs/guides/agents", "Agent workflows, tools и blueprint components"),
+    4: ("https://spec.openapis.org/oas/latest.html", "Formal API contract в source hierarchy"),
+    5: ("https://modelcontextprotocol.io/docs/getting-started/intro", "Ограниченный context packet и внешние tools"),
+    6: ("https://developers.openai.com/api/docs/guides/agents", "Ограничения и checks в управляемых agent actions"),
+    7: ("https://developers.openai.com/api/docs/guides/agents", "Roles, tools и управляемый workflow в role contract"),
+    8: ("https://openai.github.io/openai-agents-python/", "Tools, handoffs и guardrails как пример реализации"),
+    9: ("https://developers.openai.com/api/docs/guides/agents", "Orchestration и handoff patterns для coordinator routing"),
+    10: ("https://spec.openapis.org/oas/latest.html", "API contract для intake и acceptance impact"),
+    11: ("https://spec.openapis.org/oas/latest.html", "Contract-aware controlled code change"),
+    12: ("https://git-scm.com/docs", "Commit и diff evidence в engineering gates"),
+    13: ("https://spec.openapis.org/oas/latest.html", "HTTP contract как source для testable conditions"),
+    14: ("https://spec.openapis.org/oas/latest.html", "Paths, operations, responses и schemas для API checks"),
+    15: ("https://docs.pytest.org/", "Collection и report output для regression evidence"),
+    16: ("https://genai.owasp.org/llmrisk/llm01-prompt-injection/", "Direct/indirect injection, untrusted input и least privilege"),
+    17: ("https://airc.nist.gov/airmf-resources/airmf/5-sec-core/", "Govern, Map, Measure и Manage для gates и authority"),
+    18: ("https://github.com/open-telemetry/semantic-conventions-genai", "GenAI trace conventions и attributes для evaluation evidence"),
+    19: ("https://airc.nist.gov/airmf-resources/airmf/5-sec-core/", "Risk ownership при сборке capstone control plane"),
+    20: ("https://airc.nist.gov/airmf-resources/playbook/", "Measured failure, correction и re-run"),
+    21: ("https://github.com/open-telemetry/semantic-conventions-genai", "Trace terminology для audit и observability"),
+}
+
+CATALOG_ONLY_EXTENSION_URLS = (
+    "https://api-docs.deepseek.com/",
+    "https://qwen.readthedocs.io/en/stable/getting_started/quickstart.html",
+    "https://a2a-protocol.org/latest/specification/",
+    "https://docs.github.com/en/actions/reference",
+    "https://adk.dev/",
+)
+
 CHECKPOINT_SELF_CHECK_REQUIREMENTS = {
     "module-01.md": {
         "artifacts": ("artifacts/module-01/control-plane-blueprint.md",),
@@ -215,7 +247,21 @@ def extract_lesson_source_section(lesson: str) -> str:
 
 
 def extract_self_check_block(guide: str) -> str:
-    return guide.split("## Повторная команда", 1)[1]
+    section = guide.split("## Повторная команда", 1)[1]
+    match = re.search(r"```(?:bash|sh|shell)\n(?P<commands>.*?)\n```", section, re.DOTALL)
+    assert match, "repeat command must be a shell code block"
+    return match.group("commands")
+
+
+def has_complete_tier_1_record(catalog: str, url: str) -> bool:
+    record = re.search(
+        rf"^### .+?\n(?:(?!^### ).)*?^- Роль: .*Tier 1.*\n(?:(?!^### ).)*?"
+        rf"^- Scope: .*\n(?:(?!^### ).)*?^- Canonical URL: \[[^]]+\]\({re.escape(url)}\)\n"
+        rf"(?:(?!^### ).)*?^- Checked: 2026-07-13\.\n(?:(?!^### ).)*?^Ограничения:",
+        catalog,
+        re.MULTILINE | re.DOTALL,
+    )
+    return record is not None
 
 
 def test_required_assets_alias_matches_templates():
@@ -407,8 +453,13 @@ def test_task11_assessment_assets_are_complete_and_scored_consistently():
         assert len(rows) == 4, guide
 
         self_check = extract_self_check_block(text)
+        assert self_check.splitlines()[0] == "set -euo pipefail"
         assert "test -s" in self_check
         assert "grep -Eq" in self_check
+        assert re.search(
+            r"(?m)^(?:grep -Eq|grep -Eqi|python3 .*validate_course|.*pytest|python3 .*check_reference_control_plane)",
+            self_check,
+        )
 
         if guide.name != "module-07.md":
             requirements = CHECKPOINT_SELF_CHECK_REQUIREMENTS[guide.name]
@@ -434,13 +485,13 @@ def test_task11_lesson_source_matrix_and_catalog_are_traceable():
         if re.match(r"^\|\s*(?:[1-9]|1[0-9]|2[01])\s*\|", line)
     ]
     assert len(rows) == 21
-    row_numbers = []
     lesson_sources = {
         int(match.group(1)): path
         for path in Path("curriculum").glob("module-*/lesson-*.md")
         if (match := re.search(r"lesson-(\d+)-", path.name))
     }
     assert set(lesson_sources) == set(range(1, 22))
+    parsed_mapping = {}
     for row in rows:
         cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
         lesson_number = int(cells[0])
@@ -448,22 +499,34 @@ def test_task11_lesson_source_matrix_and_catalog_are_traceable():
         supporting_urls = re.findall(r"https?://[^)\s]+", cells[2])
         assert len(primary_urls) == 1, row
         assert "Tier 1" in cells[1] and "2026-07-13" in cells[3], row
-        lesson_source_section = extract_lesson_source_section(
-            lesson_sources[lesson_number].read_text(encoding="utf-8")
-        )
+        parsed_mapping[lesson_number] = (primary_urls[0], cells[4])
+        lesson_text = lesson_sources[lesson_number].read_text(encoding="utf-8")
+        lesson_source_section = extract_lesson_source_section(lesson_text)
+        assert primary_urls[0] in lesson_text, row
         assert primary_urls[0] in lesson_source_section, row
         for url in supporting_urls:
             assert url in lesson_source_section, row
-        row_numbers.append(lesson_number)
 
-    assert sorted(row_numbers) == list(range(1, 22))
-    assert len(set(row_numbers)) == 21
+    assert parsed_mapping == CANONICAL_LESSON_SOURCE_MAPPING
     assert "Поддерживающий Tier 2/3" in matrix
     assert "Ограничение вендора" in matrix
     assert "только URL, который указан в `## Официальные источники`" in matrix
     assert "catalog extensions" in matrix
 
     catalog = Path("docs/source-catalog.md").read_text(encoding="utf-8")
+    tier_1_start = catalog.index("## Tier 1:")
+    tier_2_start = catalog.index("## Tier 2:")
+    tier_1_region = catalog[tier_1_start:tier_2_start]
+    for url, _topic in CANONICAL_LESSON_SOURCE_MAPPING.values():
+        assert url in tier_1_region or has_complete_tier_1_record(catalog, url), url
+    all_lesson_text = "\n".join(
+        path.read_text(encoding="utf-8") for path in lesson_sources.values()
+    )
+    for url in CATALOG_ONLY_EXTENSION_URLS:
+        assert url not in all_lesson_text, url
+        assert url not in matrix, url
+        assert url in catalog, url
+
     catalog_urls = []
     for title, url in TASK11_SOURCE_RECORDS.items():
         section = extract_catalog_section(catalog, title)
@@ -487,6 +550,7 @@ def test_task11_module07_self_check_covers_mappings_runs_and_safety_evidence():
     guide = Path("assessments/checkpoints/module-07.md").read_text(encoding="utf-8")
     self_check = extract_self_check_block(guide)
 
+    assert self_check.splitlines()[0] == "set -euo pipefail"
     assert "test -s" in self_check
     assert "grep -Eq" in self_check
     assert "python3 -c" in self_check

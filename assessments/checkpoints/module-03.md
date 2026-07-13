@@ -34,6 +34,7 @@ package; повторите walkthrough без запрещенного дейс
 ## Повторная команда
 
 ```bash
+set -euo pipefail
 test -s artifacts/module-03/role-contracts.md
 test -s artifacts/module-03/skill-and-permission-matrix.md
 test -s artifacts/module-03/coordinator-handoff.md

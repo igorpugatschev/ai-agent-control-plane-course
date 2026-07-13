@@ -32,6 +32,7 @@ owner, gate и safe next action; повторите self-check и walkthrough.
 ## Повторная команда
 
 ```bash
+set -euo pipefail
 test -s artifacts/module-01/control-plane-blueprint.md
 grep -Eqi 'Scope|Owner|Evidence|STOP' artifacts/module-01/control-plane-blueprint.md
 python3 scripts/validate_course.py curriculum

@@ -36,6 +36,7 @@ Reviewer находит `SAFE-CHK-006`, `trace_id`, source/trust, digest/redacti
 ## Повторная команда
 
 ```bash
+set -euo pipefail
 test -s artifacts/module-06/threat-model.md
 test -s artifacts/module-06/approval-matrix.md
 test -s artifacts/module-06/evaluation-dataset.md

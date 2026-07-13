@@ -33,6 +33,7 @@ scope drift возвращает revision, а не commit.
 ## Повторная команда
 
 ```bash
+set -euo pipefail
 test -s artifacts/module-04/change-brief.md
 test -s artifacts/module-04/controlled-change-plan.md
 test -s artifacts/module-04/change-review-gate.md

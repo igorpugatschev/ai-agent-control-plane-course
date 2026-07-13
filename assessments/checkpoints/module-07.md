@@ -34,6 +34,7 @@ remediation`, выполните affected re-run и только потом об
 ## Повторная команда
 
 ```bash
+set -euo pipefail
 CAPSTONE=projects/starter-control-plane
 test -s "$CAPSTONE/control-plane.yaml"
 test -s "$CAPSTONE/artifacts/capstone/README.md"
