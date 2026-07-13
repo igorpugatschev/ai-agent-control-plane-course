@@ -18,6 +18,12 @@ REQUIRED_SECTIONS = (
     "## Официальные источники",
 )
 OUTCOME_ARTIFACT_RE = re.compile(r"`artifacts/[^`\n]+`")
+PRIMARY_ARTIFACT_RE = re.compile(
+    r"^\s*(?:[-*]\s+)?(?:\*\*)?Основной артефакт(?:\*\*)?\s*:\s*"
+    r"(?P<artifact>`artifacts/[^`\n]+`)",
+    re.IGNORECASE | re.MULTILINE,
+)
+FENCED_CODE_RE = re.compile(r"```.*?```", re.DOTALL)
 HTTPS_URL_RE = re.compile(r"https://[^\s)]+")
 MODULE_LOCAL_ROUTE_HEADING = "Обязательный локальный маршрут"
 CURRICULUM_ENTRY_HEADING = "Перед началом"
@@ -201,8 +207,18 @@ def validate_lesson(path: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
     errors = [f"{path}: нет раздела {section}" for section in REQUIRED_SECTIONS if section not in text]
     outcome = extract_level_two_section(text, "Результат урока")
-    if outcome is None or not OUTCOME_ARTIFACT_RE.search(outcome):
+    outcome_prose = "" if outcome is None else FENCED_CODE_RE.sub("", outcome)
+    primary_artifacts = PRIMARY_ARTIFACT_RE.findall(outcome_prose)
+    if primary_artifacts:
+        primary_count = len(primary_artifacts)
+    else:
+        primary_count = len(set(OUTCOME_ARTIFACT_RE.findall(outcome_prose)))
+    if primary_count == 0:
         errors.append(f"{path}: нет именованного артефакта в результате урока")
+    elif primary_count != 1:
+        errors.append(
+            f"{path}: ожидался ровно один основной артефакт, найдено {primary_count}"
+        )
     sources = extract_level_two_section(text, "Официальные источники")
     if sources is None or not HTTPS_URL_RE.search(sources):
         errors.append("нет ссылки на официальный источник")

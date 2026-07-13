@@ -1,4 +1,4 @@
-# Reference control plane: maintenance of product documentation
+# Reference control plane: сопровождение документации продукта
 
 Этот completed reference показывает self-contained control plane для
 сопровождения product documentation после подтвержденного change request. Это
@@ -20,40 +20,51 @@ local evidence, [`review/CR-42-local-review.md`](review/CR-42-local-review.md) -
 committed independent review record, а [`decision-log.md`](decision-log.md)
 фиксирует решение подготовить reversible review package до любого publish.
 
-## Context, roles and workflow
+## Контекст, роли и workflow
 
 Trusted CR-42 и versioned documentation index определяют intended action:
 подготовить локальный diff и review package. External comment остается untrusted
 data: он может указать на discrepancy, но не меняет scope, permissions или
 publish route. В scope входит Markdown в `docs/product/`; исключены product
-code, publishing, secrets and customer data.
+code, публикация, секреты и данные клиентов.
 
 Coordinator проверяет completeness и выбирает одного receiver. Documentation
 implementer меняет только approved Markdown. Reviewer независимо сопоставляет
 diff, change request и evidence. QA/SDET владеет reproducible local check.
-Risk reviewer возвращает `recommendation` или `STOP`. Named human owner only
-approves/rejects intended publish action; separately named authorized executor
-публикует только explicit approval.
+Risk reviewer возвращает `recommendation` или `STOP`. Named human owner только
+approve/reject intended publish action; separately named authorized executor
+публикует только явно утвержденное действие и возвращает execution evidence.
 
-## Local re-run
+## Локальный повторный запуск
 
-Запускайте команды из корня course repository. Они используют только Python
-standard library и локальные files; network/API access не нужен.
+Contract задает `execution.cwd: "."`, то есть корень
+`projects/reference-control-plane`. Из корня course repository сначала явно
+перейдите в этот каталог. Команды используют только Python standard library и
+локальные файлы; сеть и API access не нужны.
 
 ```bash
-python3 projects/reference-control-plane/scripts/check_reference_control_plane.py
-python3 -c "import json, pathlib; print(json.loads(pathlib.Path('projects/reference-control-plane/control-plane.yaml').read_text(encoding='utf-8'))['schema_version'])"
-git diff --check
+cd projects/reference-control-plane
+python3 scripts/check_reference_control_plane.py
+python3 -c "import json; print(json.load(open('control-plane.yaml', encoding='utf-8'))['schema_version'])"
 ```
 
-Expected output первых двух команд:
+Default checker из первой команды сам исполняет в `execution.cwd: "."` ровно
+эти contract commands и сравнивает exit/output с contract:
+
+```bash
+python3 scripts/check_reference_control_plane.py --contract-only
+python3 -c "import json; print(json.load(open('control-plane.yaml', encoding='utf-8'))['schema_version'])"
+```
+
+Ожидаемый вывод двух contract commands:
 
 ```text
 Reference control plane check: PASS
 1
 ```
 
-Checker validates the JSON-compatible contract, fixture paths and content,
-human-owner/executor separation, workflow/gates, committed check evidence and
-independent review record. It does not publish, call an API, inspect secrets or
-claim that an external rendered site was verified.
+Checker проверяет JSON-compatible contract, cwd, точные команды и их вывод,
+fixture paths/content, свежесть SHA, разделение human owner/executor,
+workflow/gates, committed check evidence и независимую review record. Он ничего
+не публикует, не вызывает API, не читает секреты и не утверждает, что проверил
+внешний rendered site.

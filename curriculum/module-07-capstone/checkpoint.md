@@ -87,7 +87,7 @@ safety checkpoint, reproducible control run и risk report.
 - Нет source/trust, gate/evidence, owner/receiver или resume condition для failure.
 - Core failure скрыт как future extension.
 
-## Проверка и correction route
+## Самопроверка и correction route
 
 Все repository-root commands ниже запускаются из корня репозитория курса, то
 есть каталога, где находятся `curriculum/`, `projects/`, `scripts/` и `tests/`.
@@ -95,6 +95,7 @@ Student artifact paths остаются внутри `projects/starter-control-p
 аналогичного выбранного starter/capstone directory.
 
 ```bash
+set -euo pipefail
 # Run from the course repository root.
 python3 -c "import json; json.load(open('projects/starter-control-plane/control-plane.yaml', encoding='utf-8'))"
 python3 scripts/validate_course.py curriculum

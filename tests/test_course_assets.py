@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -221,7 +222,7 @@ CHECKPOINT_SELF_CHECK_REQUIREMENTS = {
             "artifacts/module-04/change-review-gate.md",
         ),
         "markers": ("acceptance", "focused", "review", "verdict"),
-        "stable_check": "PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q",
+        "stable_check": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m pytest tests -q -p no:cacheprovider",
     },
     "module-05.md": {
         "artifacts": (
@@ -264,6 +265,13 @@ def extract_self_check_block(guide: str) -> str:
     return match.group("commands")
 
 
+def extract_shell_block_after_heading(document: str, heading: str) -> str:
+    section = document.split(heading, 1)[1]
+    match = re.search(r"```(?:bash|sh|shell)\n(?P<commands>.*?)\n```", section, re.DOTALL)
+    assert match, f"{heading} must contain a shell code block"
+    return match.group("commands")
+
+
 def has_complete_tier_1_record(catalog: str, url: str) -> bool:
     for section in re.split(r"(?=^### )", catalog, flags=re.MULTILINE):
         if f"]({url})" not in section:
@@ -299,9 +307,14 @@ def test_reference_control_plane_is_self_contained_and_rerunnable():
     contract = json.loads((reference / "control-plane.yaml").read_text(encoding="utf-8"))
 
     assert contract["project"]["name"] == "product-documentation-maintenance"
-    assert contract["evidence"]["local_check"] == (
-        "python3 scripts/check_reference_control_plane.py -> exit 0"
-    )
+    assert contract["execution"]["cwd"] == "."
+    assert contract["execution"]["commands"]
+    for command in contract["execution"]["commands"]:
+        assert command["command"]
+        assert command["expected_exit"] == 0
+        assert command["expected_stdout"]
+    for source in contract["context"]["trusted_sources"]:
+        assert re.fullmatch(r"[0-9a-f]{40}", source["source_sha"])
     for path in (
         "docs/product/change-requests/CR-42.md",
         "docs/product/index.md",
@@ -315,7 +328,8 @@ def test_reference_control_plane_is_self_contained_and_rerunnable():
         assert (reference / path).is_file(), path
 
     result = subprocess.run(
-        [sys.executable, str(reference / "scripts/check_reference_control_plane.py")],
+        [sys.executable, "scripts/check_reference_control_plane.py"],
+        cwd=reference,
         check=False,
         capture_output=True,
         text=True,
@@ -324,6 +338,186 @@ def test_reference_control_plane_is_self_contained_and_rerunnable():
     assert result.returncode == 0, result.stderr
     assert result.stdout == "Reference control plane check: PASS\n"
     assert result.stderr == ""
+
+
+def test_reference_checker_rejects_contract_mutations(tmp_path):
+    source = Path("projects/reference-control-plane")
+
+    def empty_commands(contract):
+        contract["execution"]["commands"] = []
+
+    def empty_command(contract):
+        contract["execution"]["commands"][0]["command"] = ""
+
+    def empty_sha(contract):
+        contract["context"]["trusted_sources"][0]["source_sha"] = ""
+
+    def weak_risk_role(contract):
+        contract["roles"]["risk_reviewer"]["prohibited"] = []
+
+    def empty_executor(contract):
+        contract["roles"]["separately_named_authorized_executor"][
+            "responsibility"
+        ] = ""
+
+    def placeholder_branch(contract):
+        contract["workflow"]["privileged_branch"] = ["<student: branch>"]
+
+    def empty_branch(contract):
+        contract["workflow"]["privileged_branch"] = []
+
+    def cwd_mismatch(contract):
+        contract["execution"]["cwd"] = "docs"
+
+    def wrong_expected_output(contract):
+        contract["execution"]["commands"][0]["expected_stdout"] = "WRONG\n"
+
+    def wrong_exit(contract):
+        contract["execution"]["commands"][0]["command"] = (
+            "python3 -c \"raise SystemExit(3)\""
+        )
+
+    cases = {
+        "empty-commands": empty_commands,
+        "empty-command": empty_command,
+        "empty-sha": empty_sha,
+        "weak-risk-role": weak_risk_role,
+        "empty-executor": empty_executor,
+        "empty-branch": empty_branch,
+        "placeholder-branch": placeholder_branch,
+        "cwd-mismatch": cwd_mismatch,
+        "wrong-output": wrong_expected_output,
+        "wrong-exit": wrong_exit,
+    }
+    for name, mutate in cases.items():
+        reference = tmp_path / name
+        shutil.copytree(source, reference)
+        contract_path = reference / "control-plane.yaml"
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        mutate(contract)
+        contract_path.write_text(
+            json.dumps(contract, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        result = subprocess.run(
+            [sys.executable, "scripts/check_reference_control_plane.py"],
+            cwd=reference,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode != 0, name
+        assert "Reference control plane check: FAIL" in result.stdout, name
+
+
+def test_reference_required_prose_is_in_russian():
+    expected_markers = {
+        Path("projects/reference-control-plane/docs/product/change-requests/CR-42.md"):
+            "## Утвержденное изменение",
+        Path("projects/reference-control-plane/docs/product/guides/review-process.md"):
+            "# Процесс review документации",
+        Path("projects/reference-control-plane/docs/product/index.md"):
+            "# Документация продукта",
+        Path("projects/reference-control-plane/review/CR-42-local-review.md"):
+            "## Вердикт: approve",
+    }
+    forbidden_english = (
+        "Approved change",
+        "Documentation review process",
+        "Product documentation",
+        "Scope reviewed",
+        "The approved change",
+    )
+    for path, marker in expected_markers.items():
+        text = path.read_text(encoding="utf-8")
+        assert marker in text, path
+        assert re.search(r"[А-Яа-яЁё]", text), path
+        assert not any(fragment in text for fragment in forbidden_english), path
+
+
+def test_module04_priority_route_produces_real_red_green_evidence_in_a_copy(tmp_path):
+    source = Path("projects/training-task-app")
+    training_copy = tmp_path / "training-task-app"
+    test_patch = Path(
+        "curriculum/module-04-development-workflow/fixtures/priority-tests.patch"
+    ).resolve()
+    implementation_patch = Path(
+        "curriculum/module-04-development-workflow/fixtures/priority-implementation.patch"
+    ).resolve()
+    source_snapshot = {
+        path.relative_to(source): path.read_bytes()
+        for path in source.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
+    }
+    shutil.copytree(source, training_copy)
+
+    tests_applied = subprocess.run(
+        ["git", "apply", str(test_patch)],
+        cwd=training_copy,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert tests_applied.returncode == 0, tests_applied.stderr
+    red = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests", "-q"],
+        cwd=training_copy,
+        env={"PYTHONPATH": "src"},
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert red.returncode != 0
+    assert "failed" in red.stdout
+
+    implementation_applied = subprocess.run(
+        ["git", "apply", "--unidiff-zero", str(implementation_patch)],
+        cwd=training_copy,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert implementation_applied.returncode == 0, implementation_applied.stderr
+    green = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests", "-q"],
+        cwd=training_copy,
+        env={"PYTHONPATH": "src"},
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert green.returncode == 0, green.stdout + green.stderr
+    assert "passed" in green.stdout
+    diff = subprocess.run(
+        ["git", "diff", "--no-index", str(source.resolve()), "."],
+        cwd=training_copy,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert diff.returncode == 1
+    assert "TaskPriority" in diff.stdout
+    assert source_snapshot == {
+        path.relative_to(source): path.read_bytes()
+        for path in source.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
+    }
+
+
+def test_module04_contract_uses_observed_output_instead_of_fixed_pass_count():
+    paths = (
+        Path("curriculum/module-04-development-workflow/lesson-11-controlled-code-change.md"),
+        Path("curriculum/module-04-development-workflow/lesson-12-engineering-gates.md"),
+        Path("curriculum/module-04-development-workflow/checkpoint.md"),
+        Path("assessments/checkpoints/module-04.md"),
+    )
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+    assert "14 passed" not in combined
+    assert "priority-tests.patch" in combined
+    assert "priority-implementation.patch" in combined
+    assert "git diff --no-index" in combined
+    assert "фактический вывод pytest" in combined
 
 
 def test_starter_and_capstone_map_every_template_to_a_required_deliverable():
@@ -445,6 +639,78 @@ def test_safety_authority_and_trace_source_contracts_are_consistent():
         assert f"- Scope: {expected['scope']}" in section
         assert f"]({expected['url']})" in section
         assert "- Checked: 2026-07-13." in section
+
+
+def test_privileged_authority_chain_returns_execution_evidence():
+    chain = (
+        "named human owner approve/reject -> separately named authorized executor "
+        "-> execution evidence"
+    )
+    for path in (
+        Path("agents/coordinator.md"),
+        Path("curriculum/module-05-qa-sdet-workflow/checkpoint.md"),
+        Path("assessments/checkpoints/module-05.md"),
+        Path("curriculum/module-06-safety-and-observability/checkpoint.md"),
+        Path("assessments/checkpoints/module-06.md"),
+    ):
+        text = " ".join(path.read_text(encoding="utf-8").split())
+        assert chain in text, path
+
+    coordinator = " ".join(
+        Path("agents/coordinator.md").read_text(encoding="utf-8").split()
+    )
+    assert "Risk reviewer только анализирует риск" in coordinator
+    assert "не дает final approval и не исполняет действие" in coordinator
+    assert "approver не может быть executor-ом" in coordinator
+
+    rubric = Path("assessments/final-rubric.md").read_text(encoding="utf-8")
+    assert "missing execution evidence" in rubric
+    assert "risk reviewer выполняет действие" in rubric
+
+
+def test_templates_require_quality_resume_and_receiver_fields():
+    agent_role = Path("templates/agent-role.md").read_text(encoding="utf-8")
+    handoff = Path("templates/handoff.md").read_text(encoding="utf-8")
+    review_gate = Path("templates/review-gate.md").read_text(encoding="utf-8")
+
+    assert agent_role.count("## Критерии качества") >= 2
+    assert "[Наблюдаемый критерий качества]" in agent_role
+    assert handoff.count("## Условие продолжения") >= 2
+    assert "[Проверяемое условие возобновления]" in handoff
+    assert review_gate.count("## Получатель") >= 2
+    assert "[Один получатель следующего действия]" in review_gate
+
+
+def test_curriculum_checkpoint_shell_blocks_fail_closed():
+    for number in (2, 3, 4, 5, 7):
+        path = next(Path("curriculum").glob(f"module-{number:02d}-*/checkpoint.md"))
+        block = extract_shell_block_after_heading(
+            path.read_text(encoding="utf-8"), "## Самопроверка"
+        )
+        assert block.splitlines()[0] == "set -euo pipefail", path
+        false_success = subprocess.run(
+            ["bash", "-c", f"{block.splitlines()[0]}\nfalse\nprintf 'false success\\n'"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert false_success.returncode != 0, path
+        assert "false success" not in false_success.stdout, path
+
+
+def test_module05_score_and_lesson20_gate_paths_are_consistent():
+    checkpoint = Path("curriculum/module-05-qa-sdet-workflow/checkpoint.md").read_text(
+        encoding="utf-8"
+    )
+    assert "не менее 8 из 8" in checkpoint
+    assert "8 из 10" not in checkpoint
+
+    lesson20 = Path(
+        "curriculum/module-07-capstone/lesson-20-failure-injection-improvement.md"
+    ).read_text(encoding="utf-8")
+    assert "templates/review-gate.md" in lesson20
+    assert "templates/stop-gate.md" in lesson20
+    assert "templates/gates.md" not in lesson20
 
 
 def test_task11_assessment_assets_are_complete_and_scored_consistently():

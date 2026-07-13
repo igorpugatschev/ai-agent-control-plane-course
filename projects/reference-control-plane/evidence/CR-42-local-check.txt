@@ -1,3 +1,3 @@
-Command: python3 scripts/check_reference_control_plane.py
-Result: Reference control plane check: PASS
-Boundary: local fixtures and contract only; no publish or external rendering check.
+Команда: python3 scripts/check_reference_control_plane.py
+Результат: Reference control plane check: PASS
+Граница: только локальные fixtures и contract; без публикации и проверки внешнего rendering.

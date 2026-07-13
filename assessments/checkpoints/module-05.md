@@ -20,18 +20,23 @@
 ## Наблюдаемое evidence
 
 Reviewer проходит одну matrix row до command/output и видит отдельные маршруты
-для `not reproduced` и flaky без выдуманной причины.
+для `not reproduced` и flaky без выдуманной причины. Для privileged branch он
+проверяет порядок risk reviewer analysis/recommendation or STOP -> named human
+owner approve/reject -> separately named authorized executor -> execution evidence.
 
 ## Критические дефекты
 
 - Release/go выдан без source-to-check matrix и observed evidence.
 - Historical fixture выдан за current defect, или flaky скрыт green retries.
 - QA/SDET self-approves release либо test layer выдан за другой layer.
+- Approver совпадает с executor-ом, executor не назван отдельно или execution
+  evidence отсутствует.
 
 ## Маршрут исправления
 
 Добавьте missing source/check/output, верните verdict к STOP, сохраните runs и
-честно обозначьте unknown; передайте решение coordinator-у.
+честно обозначьте unknown; передайте решение coordinator-у. После human approve
+coordinator назначает отдельного authorized executor и принимает execution evidence.
 
 ## Повторная команда
 

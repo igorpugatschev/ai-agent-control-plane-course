@@ -2,10 +2,11 @@
 
 ## Результат урока
 
-Вы создадите `artifacts/module-06/evaluation-dataset.md`,
+Основной артефакт: `artifacts/module-06/evaluation-dataset.md`.
+При выполнении урока вы также обновите связанные записи
 `artifacts/module-06/trace-record.md` и `artifacts/module-06/decision-log.md`.
-Они измерят outcome agent workflow, объяснят путь одного запуска без утечки
-секретов и сохранят существенное решение с owner и условием пересмотра.
+Вместе они измерят outcome agent workflow, объяснят путь одного запуска без
+утечки секретов и сохранят существенное решение с owner и условием пересмотра.
 
 ## Зачем это инженеру
 

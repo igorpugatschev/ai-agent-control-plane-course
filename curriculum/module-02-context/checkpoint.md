@@ -67,6 +67,7 @@ fact/assumption/live state и STOP before unsupported implementation.
 Запустите из корня репозитория:
 
 ```bash
+set -euo pipefail
 for file in source-register.md context-packet.md context-map-evidence-gate.md; do
   test -f "artifacts/module-02/$file" || exit 1
 done

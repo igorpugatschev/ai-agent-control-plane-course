@@ -1,5 +1,6 @@
-# Product documentation
+# Документация продукта
 
-- [Documentation review process](guides/review-process.md)
+- [Процесс review документации](guides/review-process.md)
 
-The index is versioned local documentation and is reviewed with CR-42.
+Индекс является версионируемой локальной документацией и проверяется вместе с
+CR-42.

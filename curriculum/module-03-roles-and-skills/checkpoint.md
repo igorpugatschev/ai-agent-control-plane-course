@@ -74,6 +74,7 @@ recommendation или STOP для named human owner.
 ## Самопроверка
 
 ```bash
+set -euo pipefail
 for file in role-contracts.md skill-and-permission-matrix.md coordinator-handoff.md; do
   test -f "artifacts/module-03/$file" || exit 1
 done

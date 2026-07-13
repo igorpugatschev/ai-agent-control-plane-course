@@ -45,7 +45,9 @@ Reviewer применяет `templates/review-gate.md`, читает change brie
 
 ## Evidence автора
 - `git diff --check` -> exit 0.
-- `PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q` -> expected learner evidence after implementing priority and adding three tests: `14 passed`; this is not the observed baseline. Current baseline: `11 passed`.
+- Команда red/green из урока 11 выполнена в отдельной копии стенда; приложены
+  фактический вывод pytest, exit status обоих запусков и непустой
+  `git diff --no-index` относительно канонического стенда.
 
 ## Проверки reviewer-а
 - Повторить command; сверить diff, API schema и документы с change brief.
@@ -74,7 +76,9 @@ approve и не commit. Coordinator получает повторный package 
 1. Создайте `artifacts/module-04/change-review-gate.md` по `templates/review-gate.md`.
 2. Внесите object, criteria и раздельные `Evidence автора`/`Проверки reviewer-а`.
 3. Назовите шесть allowed paths и protected behavior: list order, `complete_task`, duplicate-title, отсутствие endpoints.
-4. Добавьте `git diff --check`, pytest command, expected `14 passed`, SHA placeholder и planned message `feat: add task priority`.
+4. Добавьте `git diff --check`, точную pytest command, фактический вывод pytest,
+   пути `priority-tests.patch` и `priority-implementation.patch`, SHA и planned
+   message `feat: add task priority`.
 5. Запишите finding из примера и bounded correction только для `api/openapi.yaml`; reviewer повторяет проверку.
 6. Завершите handoff: reviewer -> coordinator при approve; coordinator -> implementation при correction. Запретите self-approval, push и final acceptance.
 
@@ -92,8 +96,9 @@ list_tasks, complete_task, duplicate-title и endpoints вне diff.
 ## Проверка результата
 
 ```bash
+set -euo pipefail
 test -f artifacts/module-04/change-review-gate.md
-for term in "Evidence автора" "Проверки reviewer-а" "git diff --check" "14 passed" \
+for term in "Evidence автора" "Проверки reviewer-а" "git diff --check" "фактический вывод pytest" \
   "changes requested" "api/openapi.yaml" "implementation" "self-approval"; do
   grep -qi "$term" artifacts/module-04/change-review-gate.md || exit 1
 done

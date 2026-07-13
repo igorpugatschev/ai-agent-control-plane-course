@@ -1,0 +1,22 @@
+diff --git a/tests/test_service.py b/tests/test_service.py
+--- a/tests/test_service.py
++++ b/tests/test_service.py
+@@ -69,3 +69,18 @@ def test_task_services_are_isolated():
+     assert first.id == second.id == 1
+     assert first_service.list_tasks() == [first]
+     assert second_service.list_tasks() == [second]
++
++
++def test_create_task_uses_normal_priority_by_default():
++    task = TaskService().create_task("Проверить gate")
++    assert task.priority.value == "normal"
++
++
++def test_create_task_keeps_allowed_priority():
++    task = TaskService().create_task("Срочно", priority="high")
++    assert task.priority.value == "high"
++
++
++def test_create_task_rejects_unknown_priority():
++    with pytest.raises(ValueError, match="Недопустимый приоритет"):
++        TaskService().create_task("Проверить gate", priority="urgent")

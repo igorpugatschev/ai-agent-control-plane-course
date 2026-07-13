@@ -1,16 +1,16 @@
-# CR-42 local review record
+# Запись локального review CR-42
 
-## Scope reviewed
+## Проверенный scope
 
-`CR-42.md`, `index.md`, `review-process.md`, `control-plane.yaml`, and the local
-check evidence were compared as one local package.
+`CR-42.md`, `index.md`, `review-process.md`, `control-plane.yaml` и evidence
+локальной проверки сопоставлены как единый локальный package.
 
-## independent reviewer
+## Независимый reviewer
 
-Documentation reviewer, separate from the documentation implementer.
+Reviewer документации, отдельный от implementer-а документации.
 
-## Verdict: approve
+## Вердикт: approve
 
-The approved change is represented in the local documentation fixtures. This is
-a review verdict, not publish approval. Any publish request still requires the
-separate risk, human-owner, and authorized-executor branch.
+Утвержденное изменение отражено в локальных fixtures документации. Это вердикт
+review, а не approval публикации. Любой запрос на публикацию по-прежнему требует
+отдельную ветку risk reviewer -> named human owner -> authorized executor.

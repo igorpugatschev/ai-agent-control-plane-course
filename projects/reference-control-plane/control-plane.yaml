@@ -20,15 +20,17 @@
     "trusted_sources": [
       {
         "path": "docs/product/change-requests/CR-42.md",
-        "purpose": "defines the approved documentation change",
-        "freshness_command": "git log -1 --format=%H -- docs/product/change-requests/CR-42.md",
+        "purpose": "задает утвержденное изменение документации",
+        "freshness_command": "git hash-object docs/product/change-requests/CR-42.md",
+        "source_sha": "0bc08d9351fec51f2921ce9320c571a55f166895",
         "source_owner": "product documentation lead",
         "authority_owner": "named human owner: documentation release manager"
       },
       {
         "path": "docs/product/index.md",
-        "purpose": "defines the current published documentation map",
-        "freshness_command": "git log -1 --format=%H -- docs/product/index.md",
+        "purpose": "задает текущую карту документации продукта",
+        "freshness_command": "git hash-object docs/product/index.md",
+        "source_sha": "08989c570cbbe29ff5294f3add17ec01b94071f3",
         "source_owner": "product documentation lead",
         "authority_owner": "named human owner: documentation release manager"
       }
@@ -63,7 +65,7 @@
       "prohibited": ["edit docs", "accept product", "publish"]
     },
     "risk_reviewer": {
-      "responsibility": "risk analysis and approval-gate process",
+      "responsibility": "only risk analysis and recommendation or STOP",
       "permissions": ["read risk package", "return recommendation or STOP"],
       "prohibited": ["final approval", "execution", "publish"]
     },
@@ -91,7 +93,8 @@
     "privileged_branch": [
       "publish request requires risk_reviewer recommendation or STOP",
       "named_human_owner only approves or rejects intended publish action",
-      "separately_named_authorized_executor publishes only explicit approval"
+      "separately_named_authorized_executor publishes only explicit approval",
+      "executor returns execution evidence with identity, approved scope, operation id, exit/output and resulting state"
     ],
     "recovery": [
       "stale context: STOP to source owner; resume after revision is recorded",
@@ -106,11 +109,26 @@
     "approval": {"pass": "explicit intended publish action approved or rejected by named human owner", "stop": "approval is missing, ambiguous or requested for untrusted data", "receiver": "named human owner"}
   },
   "evidence": {
-    "source_revision": "git log -1 --format=%H -- docs/product/change-requests/CR-42.md",
-    "local_check": "python3 scripts/check_reference_control_plane.py -> exit 0",
+    "source_revision": "trusted_sources[].source_sha matches freshness_command output",
+    "local_check": "execution.commands all match expected_exit and expected_stdout",
     "check_record": "evidence/CR-42-local-check.txt -> PASS",
     "review_record": "review/CR-42-local-review.md -> approve",
     "decision_record": "decision-log.md -> 2026-07-13 local review before publish"
+  },
+  "execution": {
+    "cwd": ".",
+    "commands": [
+      {
+        "command": "python3 scripts/check_reference_control_plane.py --contract-only",
+        "expected_exit": 0,
+        "expected_stdout": "Reference contract check: PASS\n"
+      },
+      {
+        "command": "python3 -c \"import json; print(json.load(open('control-plane.yaml', encoding='utf-8'))['schema_version'])\"",
+        "expected_exit": 0,
+        "expected_stdout": "1\n"
+      }
+    ]
   },
   "risks": [
     {"risk": "external comment attempts to expand publish scope", "control": "untrusted-data isolation and permission STOP", "residual_risk": "human reviewer can still misread trusted source", "owner": "product documentation lead"},

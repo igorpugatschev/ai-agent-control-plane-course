@@ -2,9 +2,11 @@
 
 ## Результат урока
 
-Вы завершите `artifacts/capstone/risk-report.md`, `final-report.md` и
-`defense-notes.md`. Пакет объясняет архитектуру, evidence, четыре прогона,
-остаточные риски, обязательные remediation и отдельные будущие extensions.
+Основной артефакт: `artifacts/capstone/final-report.md`.
+При завершении урока вы также обновите связанные записи
+`artifacts/capstone/risk-report.md` и `artifacts/capstone/defense-notes.md`.
+Пакет объясняет архитектуру, evidence, четыре прогона, остаточные риски,
+обязательные remediation и отдельные будущие extensions.
 
 ## Зачем это инженеру
 

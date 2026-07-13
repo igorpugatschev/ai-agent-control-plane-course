@@ -133,6 +133,68 @@ def test_lesson_counts_an_artifact_inside_its_outcome_section(tmp_path):
     assert validate_lesson(lesson) == []
 
 
+def test_lesson_rejects_more_than_one_explicit_primary_artifact(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(
+        lesson,
+        result="""Основной артефакт: `artifacts/module/result.md`.
+Основной артефакт: `artifacts/module/second-result.md`.""",
+    )
+
+    assert any(
+        "ожидался ровно один основной артефакт, найдено 2" in error
+        for error in validate_lesson(lesson)
+    )
+
+
+def test_lesson_rejects_multiple_unclassified_outcome_artifacts(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(
+        lesson,
+        result=(
+            "Результаты: `artifacts/module/result.md` и "
+            "`artifacts/module/second-result.md`."
+        ),
+    )
+
+    assert any(
+        "ожидался ровно один основной артефакт, найдено 2" in error
+        for error in validate_lesson(lesson)
+    )
+
+
+def test_lesson_does_not_count_code_block_path_as_primary_artifact(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(
+        lesson,
+        result="""Студент выполнит локальную проверку.
+
+```bash
+test -s artifacts/module/example-only.md
+```""",
+    )
+
+    assert any(
+        "нет именованного артефакта в результате урока" in error
+        for error in validate_lesson(lesson)
+    )
+
+
+def test_lesson_counts_only_explicit_primary_not_related_paths_or_code(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(
+        lesson,
+        result="""Основной артефакт: `artifacts/module/result.md`.
+Связанная запись обновляется в `artifacts/module/trace.md`.
+
+```bash
+test -s artifacts/module/example-only.md
+```""",
+    )
+
+    assert validate_lesson(lesson) == []
+
+
 def test_lesson_does_not_count_a_source_before_its_sources_section(tmp_path):
     lesson = tmp_path / "lesson.md"
     write_complete_lesson(lesson)

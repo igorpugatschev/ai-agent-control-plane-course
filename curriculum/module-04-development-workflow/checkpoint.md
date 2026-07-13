@@ -37,7 +37,8 @@ Approved change: `priority` со значениями `high`, `normal`, `low` и
 
 ## Задание
 
-Создайте только три артефакта Module 4. Учебный стенд не меняйте.
+Создайте только три артефакта Module 4. Канонический учебный стенд не меняйте:
+red/green выполните в отдельной копии по поставляемым patches.
 
 1. В `change-brief.md` зафиксируйте Product owner, acceptance, impact, exclusions, workflow и STOP при неполном решении.
 2. В `controlled-change-plan.md` запишите три priority tests, regression guards, red/green порядок, шесть affected paths и route при failure.
@@ -49,7 +50,7 @@ Approved change: `priority` со значениями `high`, `normal`, `low` и
 
 ```text
 Изменены models.py, service.py и test_service.py: добавлен priority и tests.
-Тесты: 14 passed. Заодно list_tasks сортирует задачи по priority high -> normal
+Тесты названы green без точной команды и фактического output. Заодно list_tasks сортирует задачи по priority high -> normal
 -> low. Также duplicate-title запрещает повторяющееся название даже для done.
 OpenAPI, requirements.md и README.md не обновлял. Считаю задачу принятой и
 готов сделать commit и git push.
@@ -60,8 +61,8 @@ OpenAPI, requirements.md и README.md не обновлял. Считаю зад
 ```text
 Verdict: changes requested.
 Evidence: response меняет list_tasks и duplicate-title вне approved scope;
-отсутствуют api/openapi.yaml, requirements.md и README.md; 14 passed - evidence
-implementation, не approval.
+отсутствуют api/openapi.yaml, requirements.md и README.md; claim о green без
+команды и output не является evidence и в любом случае не дает approval.
 Correction receiver: implementation через coordinator.
 Bounded revision: убрать только сортировку и изменение duplicate-title;
 синхронизировать priority high/normal/low/default normal только в OpenAPI,
@@ -87,6 +88,7 @@ verdict, path, observation, risk, correction receiver, bounded revision и STOP.
 ## Самопроверка
 
 ```bash
+set -euo pipefail
 for file in change-brief.md controlled-change-plan.md change-review-gate.md; do
   test -f "artifacts/module-04/$file" || exit 1
 done
@@ -97,8 +99,29 @@ for term in "Acceptance" "priority" "normal" "test-first" "git diff" \
   "Evidence автора" "Проверки reviewer-а" "changes requested" "bounded revision"; do
   grep -R -qi "$term" artifacts/module-04 || exit 1
 done
-PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
-# Базовое наблюдение, пока стенд не меняется: 11 passed.
+repo_root=$PWD
+workdir=$(mktemp -d)
+cp -R projects/training-task-app "$workdir/training-task-app"
+cd "$workdir/training-task-app"
+git apply "$repo_root/curriculum/module-04-development-workflow/fixtures/priority-tests.patch"
+set +e
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m pytest tests -q -p no:cacheprovider \
+  > "$workdir/red.txt" 2>&1
+red_status=$?
+set -e
+test "$red_status" -ne 0
+git apply --unidiff-zero "$repo_root/curriculum/module-04-development-workflow/fixtures/priority-implementation.patch"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m pytest tests -q -p no:cacheprovider \
+  | tee "$workdir/green.txt"
+diff_status=0
+git diff --no-index "$repo_root/projects/training-task-app" . \
+  > "$workdir/priority.diff" || diff_status=$?
+test "$diff_status" -eq 1
+test -s "$workdir/red.txt"
+test -s "$workdir/green.txt"
+test -s "$workdir/priority.diff"
+grep -q 'TaskPriority' "$workdir/priority.diff"
+cd "$repo_root"
 git diff --check
 ```
 

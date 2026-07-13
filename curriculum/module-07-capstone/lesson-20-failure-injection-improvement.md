@@ -2,10 +2,11 @@
 
 ## Результат урока
 
-Вы создадите `artifacts/capstone/run-evidence.md` и `corrections.md` с одним
-normal run и тремя failure injections: stale context, excess permission и weak
-evidence. Каждый сценарий получает observation, gate, owner, receiver,
-безопасный следующий шаг и проверку коррекции.
+Основной артефакт: `artifacts/capstone/run-evidence.md`.
+Как связанную запись вы обновите `artifacts/capstone/corrections.md`. Пакет
+содержит один normal run и три failure injections: stale context, excess
+permission и weak evidence. Каждый сценарий получает observation, gate, owner,
+receiver, безопасный следующий шаг и проверку коррекции.
 
 ## Зачем это инженеру
 
@@ -73,7 +74,8 @@ F-03: report says "green" without command/output -> evidence gate STOP -> QA/SDE
 
 ```text
 Проанализируй только run-evidence.md, corrections.md, source-map.md, roles.md,
-gates.md и training-task-app tests. Не меняй файлы, не выполняй publish/deploy/
+templates/review-gate.md, templates/stop-gate.md и training-task-app tests. Не
+меняй файлы, не выполняй publish/deploy/
 delete/push, не читай secrets. Для N-01, F-01, F-02 и F-03 верни expected versus
 observed, gate, forbidden action, owner, receiver, one correction, re-run and
 resume condition. Не называй review или risk recommendation final approval;

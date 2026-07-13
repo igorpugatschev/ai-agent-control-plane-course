@@ -32,5 +32,6 @@ command/output - не evidence.
 - execution from untrusted input, privilege expansion или action до gate;
 - confusion review/recommendation/test verdict с human approval;
 - merged human owner, risk reviewer и authorized executor;
+- risk reviewer выполняет действие, approver назначен executor-ом или missing execution evidence;
 - missing source/trust, evidence, owner/receiver или resume condition for failure;
 - future extension представлена как remediation current core failure.

@@ -43,6 +43,10 @@ templates/handoff.md
 2. В `test-agent-workflow.md` опишите API schema review, stable command, evidence fields, failure routing, optional Playwright branch и `UI check: not applicable` для текущего стенда.
 3. В `triage-and-release-gate.md` классифицируйте exact fixtures ниже, выберите regression scope и подготовьте release gate. Выпуск без traceability matrix обязан завершиться `STOP`.
 4. Передайте QA/SDET package coordinator-у. QA/SDET не исправляет стенд, не выдает final acceptance и не делает release/deploy; risk reviewer выполняет risk analysis и возвращает documented recommendation или STOP после complete risk package.
+5. Для привилегированного release route зафиксируйте полный порядок: risk
+   reviewer analysis/recommendation or STOP -> named human owner approve/reject
+   -> separately named authorized executor -> execution evidence. Human owner
+   и risk reviewer не могут быть executor-ом.
 
 ## Exact fixture classification
 
@@ -74,6 +78,9 @@ Receiver: coordinator.
 report; после completeness check coordinator направляет risk package risk
 reviewer-у для analysis и recommendation/STOP, а final irreversible-action
 approval дает named human owner.
+После approve coordinator назначает отдельно named authorized executor; тот
+возвращает execution evidence с identity, approved scope, command/operation id,
+exit/output и resulting state. При reject execution отсутствует.
 Resume condition: complete traceability, deterministic evidence, defect/flaky
 decision, risk/rollback и named owners.
 ```
@@ -96,6 +103,7 @@ next action и resume condition. Release без traceability обязан быт
 ## Самопроверка
 
 ```bash
+set -euo pipefail
 for file in traceability-matrix.md test-agent-workflow.md triage-and-release-gate.md; do
   test -f "artifacts/module-05/$file" || exit 1
 done
@@ -113,7 +121,12 @@ PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-ta
 git diff --check
 ```
 
-Проведите два walkthrough. Нормальный путь: full traceability и deterministic evidence -> coordinator completeness check -> risk analysis -> recommendation or STOP -> named human owner final approval. Failure path: отсутствует matrix или flaky disposition -> `STOP -> coordinator -> QA/SDET` для bounded evidence package; не выполняйте release.
+Проведите два walkthrough. Нормальный путь: full traceability и deterministic
+evidence -> coordinator completeness check -> risk analysis -> recommendation
+or STOP -> named human owner approve/reject -> separately named authorized
+executor -> execution evidence. Failure path: отсутствует matrix или flaky
+disposition -> `STOP -> coordinator -> QA/SDET` для bounded evidence package;
+не выполняйте release.
 
 ## Оценивание
 
@@ -126,7 +139,7 @@ git diff --check
 | Defect/flaky triage | Fixtures перепутаны | Есть label без facts/owner | Exact classification, runs, unknown cause, scope и owner |
 | Release gate | Green назван release | Есть checklist без traceability STOP | Matrix, output, disposition, risk/rollback, owners; missing data -> STOP |
 
-Для зачета нужно не менее 8 из 10 и отсутствие критического дефекта.
+Для зачета нужно не менее 8 из 8 и отсутствие критического дефекта.
 
 ## Критические дефекты
 
@@ -135,6 +148,8 @@ git diff --check
 - **Unbounded flaky retry:** нестабильность скрыта повторным green run без сохраненных outcomes.
 - **Layer confusion:** Python unit test выдан за HTTP endpoint или обязательный UI check выдуман без UI scope.
 - **Role violation:** QA/SDET self-approves release, risk reviewer дает final approval или reviewer/deployer выполняет действие вместо documented recommendation/final approval.
+- **Authority chain violation:** approver совпадает с executor-ом, authorized
+  executor не назван отдельно или отсутствует execution evidence.
 - **Missing deterministic evidence:** нет exact command, environment/exit result или named receiver.
 
 ## Локальный маршрут исправления

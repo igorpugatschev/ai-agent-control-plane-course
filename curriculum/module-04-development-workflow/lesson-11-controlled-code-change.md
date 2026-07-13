@@ -68,12 +68,36 @@ complete_task, duplicate-title, endpoints, commit и push. Handoff - reviewer.
 1. Создайте `artifacts/module-04/controlled-change-plan.md` с тремя named focused tests и тремя regression guards.
 2. Назовите code/test paths `models.py`, `service.py`, `test_service.py`; docs/OpenAPI paths - `requirements.md`, `README.md`, `api/openapi.yaml`.
 3. Запишите порядок: test -> red evidence -> minimal code -> focused green -> full green -> docs/OpenAPI sync -> `git diff` -> handoff reviewer.
-4. Добавьте команду и ожидаемое наблюдение:
+4. Выполните изменение в отдельной учебной копии. Канонический стенд остается
+   исходником для сравнения:
 
    ```bash
-   PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
-   # До реализации priority tests failing; после ограниченной реализации: 14 passed.
+   set -euo pipefail
+   repo_root=$PWD
+   workdir=$(mktemp -d)
+   cp -R projects/training-task-app "$workdir/training-task-app"
+   cd "$workdir/training-task-app"
+   git apply "$repo_root/curriculum/module-04-development-workflow/fixtures/priority-tests.patch"
+   set +e
+   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m pytest tests -q -p no:cacheprovider \
+     > "$workdir/red.txt" 2>&1
+   red_status=$?
+   set -e
+   test "$red_status" -ne 0
+   git apply --unidiff-zero "$repo_root/curriculum/module-04-development-workflow/fixtures/priority-implementation.patch"
+   PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m pytest tests -q -p no:cacheprovider \
+     | tee "$workdir/green.txt"
+   diff_status=0
+   git diff --no-index "$repo_root/projects/training-task-app" . \
+     > "$workdir/priority.diff" || diff_status=$?
+   test "$diff_status" -eq 1
+   test -s "$workdir/red.txt"
+   test -s "$workdir/green.txt"
+   test -s "$workdir/priority.diff"
    ```
+
+   В evidence перенесите фактический вывод pytest из `red.txt` и `green.txt`,
+   exit status и `priority.diff`, не подставляя заранее заданное число passed.
 
 5. Укажите correction: при падении regression guard implementation не меняет scope, сохраняет output и передает coordinator-у.
 
@@ -93,11 +117,11 @@ push и не выдавай approve.
 ```bash
 test -f artifacts/module-04/controlled-change-plan.md
 for term in "test-first" "models.py" "service.py" "test_service.py" "openapi.yaml" \
-  "requirements.md" "README.md" "git diff" "14 passed" "coordinator"; do
+  "requirements.md" "README.md" "git diff" "фактический вывод pytest" "coordinator"; do
   grep -qi "$term" artifacts/module-04/controlled-change-plan.md || exit 1
 done
-PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
-# Базовое наблюдение до практической реализации: 11 passed.
+test -s curriculum/module-04-development-workflow/fixtures/priority-tests.patch
+test -s curriculum/module-04-development-workflow/fixtures/priority-implementation.patch
 ```
 
 Наблюдаемые критерии: есть red/green, три новых tests, guards, шесть путей и correction route. Если новый test проходит до реализации или старый падает, зафиксируйте output и остановите plan до выяснения причины.
