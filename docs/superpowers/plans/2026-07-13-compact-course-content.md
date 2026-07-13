@@ -927,3 +927,22 @@ The implementation is complete only when all of these statements are proven by t
 - starter, reference and capstone tracks are navigable;
 - safety checkpoint and final rubric enforce critical-stop conditions;
 - no mandatory task requires an API key, cloud account or external literature.
+
+## Task 11 Correction Report (2026-07-13)
+
+- Matrix rows 1-21 now carry exactly one Tier 1 primary URL that occurs in the
+  corresponding lesson's `## Официальные источники`; unsupported catalog
+  extensions are explicitly excluded from lesson dependencies.
+- Added the complete Tier 1 record for the primary OpenAI Agents guide and
+  retained DeepSeek, Qwen, A2A, GitHub Actions and ADK as catalog-only
+  extensions when no lesson uses their URLs.
+- Checkpoint self-checks now require nonempty listed artifacts, required
+  evidence fields and a relevant stable validator, pytest or reference check.
+  Module 7 additionally checks all ten mappings, N-01/F-01/F-02/F-03 evidence,
+  safety authority and risk evidence.
+- The repository baseline does not contain completed student artifacts, so
+  student-artifact self-check commands were intentionally not executed during
+  this correction; their presence and required checks are enforced by tests.
+- Verification: `python3 scripts/validate_course.py curriculum` completed with
+  no errors; focused assets tests passed 10, root course tests passed 13,
+  training stand tests passed 11 and the reference control-plane check passed.

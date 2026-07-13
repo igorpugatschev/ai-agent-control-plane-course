@@ -83,6 +83,20 @@
 - названия моделей, доступность функций, лимиты, цены и политики нужно перепроверять на дату обновления урока;
 - OpenAI-специфичные механики нужно отделять от общих принципов agent control plane.
 
+### OpenAI Agents guide
+
+- Роль: Tier 1 official guide для agent workflows, tools, handoffs, guardrails
+  и observability.
+- Scope: primary reference для уроков 1-3, 6, 7, 9 и vendor-specific comparison
+  общего agent control plane; не local authority model.
+- Canonical URL: [OpenAI Agents guide](https://developers.openai.com/api/docs/guides/agents)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- доступность функций, модели, лимиты и политики могут меняться; guide не
+  назначает локальные permissions, approval, owners или product scope.
+
 ### NIST AI RMF Core
 
 - Роль: vendor-neutral Tier 1 framework для управления AI risks.

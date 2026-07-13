@@ -34,5 +34,11 @@ Reviewer проходит одну matrix row до command/output и видит 
 ## Повторная команда
 
 ```bash
-test -f artifacts/module-05/traceability-matrix.md
+test -s artifacts/module-05/traceability-matrix.md
+test -s artifacts/module-05/test-agent-workflow.md
+test -s artifacts/module-05/triage-and-release-gate.md
+grep -Eqi 'source|check|output|risk|gap' artifacts/module-05/traceability-matrix.md
+grep -Eqi 'service|API|UI|output|receiver' artifacts/module-05/test-agent-workflow.md
+grep -Eqi 'triage|flaky|STOP|release|owner' artifacts/module-05/triage-and-release-gate.md
+PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
 ```

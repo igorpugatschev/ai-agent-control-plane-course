@@ -34,5 +34,46 @@ remediation`, выполните affected re-run и только потом об
 ## Повторная команда
 
 ```bash
+CAPSTONE=projects/starter-control-plane
+test -s "$CAPSTONE/control-plane.yaml"
+test -s "$CAPSTONE/artifacts/capstone/README.md"
+test -s "$CAPSTONE/artifacts/capstone/blueprint.md"
+test -s "$CAPSTONE/artifacts/capstone/source-map.md"
+test -s "$CAPSTONE/artifacts/capstone/roles.md"
+test -s "$CAPSTONE/artifacts/capstone/skill-contracts.md"
+test -s "$CAPSTONE/artifacts/capstone/handoffs.md"
+test -s "$CAPSTONE/artifacts/capstone/workflow.md"
+test -s "$CAPSTONE/artifacts/capstone/review-gate.md"
+test -s "$CAPSTONE/artifacts/capstone/stop-gate.md"
+test -s "$CAPSTONE/artifacts/capstone/decision-log.md"
+test -s "$CAPSTONE/artifacts/capstone/evidence-index.md"
+test -s "$CAPSTONE/artifacts/capstone/run-evidence.md"
+test -s "$CAPSTONE/artifacts/capstone/corrections.md"
+test -s "$CAPSTONE/artifacts/capstone/risk-report.md"
+test -s "$CAPSTONE/artifacts/capstone/final-report.md"
+test -s "$CAPSTONE/artifacts/capstone/defense-notes.md"
+python3 -c "import json; path='projects/starter-control-plane/control-plane.yaml'; expected=[{'template': 'templates/control-plane-blueprint.md', 'artifact': 'artifacts/capstone/blueprint.md'}, {'template': 'templates/context-map.md', 'artifact': 'artifacts/capstone/source-map.md'}, {'template': 'templates/agent-role.md', 'artifact': 'artifacts/capstone/roles.md'}, {'template': 'templates/skill-contract.md', 'artifact': 'artifacts/capstone/skill-contracts.md'}, {'template': 'templates/handoff.md', 'artifact': 'artifacts/capstone/handoffs.md'}, {'template': 'templates/workflow.md', 'artifact': 'artifacts/capstone/workflow.md'}, {'template': 'templates/review-gate.md', 'artifact': 'artifacts/capstone/review-gate.md'}, {'template': 'templates/stop-gate.md', 'artifact': 'artifacts/capstone/stop-gate.md'}, {'template': 'templates/decision-log.md', 'artifact': 'artifacts/capstone/decision-log.md'}, {'template': 'templates/final-report.md', 'artifact': 'artifacts/capstone/final-report.md'}]; actual=json.load(open(path, encoding='utf-8'))['template_mapping']; assert actual == expected, actual"
+for run in N-01 F-01 F-02 F-03; do
+  grep -Eq "$run" "$CAPSTONE/artifacts/capstone/run-evidence.md" || exit 1
+  grep -Eqi "$run.*(result|output|observed)" "$CAPSTONE/artifacts/capstone/run-evidence.md" || exit 1
+  grep -Eqi "$run.*owner" "$CAPSTONE/artifacts/capstone/run-evidence.md" || exit 1
+  grep -Eqi "$run.*receiver" "$CAPSTONE/artifacts/capstone/run-evidence.md" || exit 1
+  grep -Eqi "$run.*resume" "$CAPSTONE/artifacts/capstone/run-evidence.md" || exit 1
+done
+for run in F-01 F-02 F-03; do
+  grep -Eqi "$run.*STOP" "$CAPSTONE/artifacts/capstone/run-evidence.md" || exit 1
+  grep -Eqi "$run.*(correction|re-run)" "$CAPSTONE/artifacts/capstone/corrections.md" || exit 1
+done
+grep -Eqi 'untrusted.*(data|input)' "$CAPSTONE/artifacts/capstone/roles.md"
+grep -Eqi 'not.*(instruction|command)|inert' "$CAPSTONE/artifacts/capstone/roles.md"
+grep -Eqi 'least privilege|permission' "$CAPSTONE/artifacts/capstone/roles.md"
+grep -Eqi 'named human owner.*(approve|reject)' "$CAPSTONE/artifacts/capstone/roles.md"
+grep -Eqi 'authorized executor' "$CAPSTONE/artifacts/capstone/roles.md"
+grep -Eqi 'residual risk|owner|revisit|required remediation' "$CAPSTONE/artifacts/capstone/risk-report.md"
+grep -Eqi 'path|SHA|command|output|verdict|decision' "$CAPSTONE/artifacts/capstone/evidence-index.md"
 python3 scripts/validate_course.py curriculum
+python3 -m pytest tests/test_course_structure.py -q
+PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
+python3 projects/reference-control-plane/scripts/check_reference_control_plane.py
+git diff --check
 ```

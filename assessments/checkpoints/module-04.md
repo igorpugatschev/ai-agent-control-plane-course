@@ -33,5 +33,11 @@ scope drift возвращает revision, а не commit.
 ## Повторная команда
 
 ```bash
-test -f artifacts/module-04/change-brief.md
+test -s artifacts/module-04/change-brief.md
+test -s artifacts/module-04/controlled-change-plan.md
+test -s artifacts/module-04/change-review-gate.md
+grep -Eqi 'acceptance|owner|exclusions|impact' artifacts/module-04/change-brief.md
+grep -Eqi 'focused|red|green|regression' artifacts/module-04/controlled-change-plan.md
+grep -Eqi 'review|verdict|diff|receiver' artifacts/module-04/change-review-gate.md
+PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
 ```

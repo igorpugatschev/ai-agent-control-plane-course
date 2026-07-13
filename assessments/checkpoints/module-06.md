@@ -36,5 +36,15 @@ Reviewer находит `SAFE-CHK-006`, `trace_id`, source/trust, digest/redacti
 ## Повторная команда
 
 ```bash
-test -f artifacts/module-06/threat-model.md
+test -s artifacts/module-06/threat-model.md
+test -s artifacts/module-06/approval-matrix.md
+test -s artifacts/module-06/evaluation-dataset.md
+test -s artifacts/module-06/trace-record.md
+test -s artifacts/module-06/decision-log.md
+grep -Eqi 'untrusted|least privilege|owner|control' artifacts/module-06/threat-model.md
+grep -Eqi 'STOP|recommendation|approval|execution' artifacts/module-06/approval-matrix.md
+grep -Eqi 'SAFE-CHK-006|expected|forbidden|redaction' artifacts/module-06/evaluation-dataset.md
+grep -Eqi 'trace_id|source|trust|redaction' artifacts/module-06/trace-record.md
+grep -Eqi 'event|gate|owner|resume' artifacts/module-06/decision-log.md
+python3 projects/reference-control-plane/scripts/check_reference_control_plane.py
 ```

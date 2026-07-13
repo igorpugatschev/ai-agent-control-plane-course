@@ -34,5 +34,11 @@ package; повторите walkthrough без запрещенного дейс
 ## Повторная команда
 
 ```bash
-test -f artifacts/module-03/role-contracts.md
+test -s artifacts/module-03/role-contracts.md
+test -s artifacts/module-03/skill-and-permission-matrix.md
+test -s artifacts/module-03/coordinator-handoff.md
+grep -Eqi 'reviewer|permission|STOP|receiver' artifacts/module-03/role-contracts.md
+grep -Eqi 'tool|skill|permission|scope|evidence' artifacts/module-03/skill-and-permission-matrix.md
+grep -Eqi 'receiver|STOP|recommendation|approval|execution' artifacts/module-03/coordinator-handoff.md
+python3 scripts/validate_course.py curriculum
 ```

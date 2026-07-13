@@ -132,19 +132,75 @@ CATALOG_SECTIONS = {
     },
 }
 
-TASK11_SOURCE_RECORDS = (
-    "DeepSeek API documentation",
-    "Qwen documentation",
-    "Model Context Protocol specification",
-    "A2A Protocol specification",
-    "NIST AI RMF Core",
-    "OWASP LLM01:2025 Prompt Injection",
-    "OpenTelemetry GenAI semantic conventions",
-    "OpenAPI Specification",
-    "JSON Schema specification",
-    "GitHub Actions documentation",
-    "Google Agent Development Kit documentation",
-)
+TASK11_SOURCE_RECORDS = {
+    "OpenAI Agents guide": "https://developers.openai.com/api/docs/guides/agents",
+    "DeepSeek API documentation": "https://api-docs.deepseek.com/",
+    "Qwen documentation": "https://qwen.readthedocs.io/en/stable/getting_started/quickstart.html",
+    "Model Context Protocol specification": "https://modelcontextprotocol.io/specification/latest",
+    "A2A Protocol specification": "https://a2a-protocol.org/latest/specification/",
+    "NIST AI RMF Core": "https://airc.nist.gov/airmf-resources/airmf/5-sec-core/",
+    "OWASP LLM01:2025 Prompt Injection": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+    "OpenTelemetry GenAI semantic conventions": "https://github.com/open-telemetry/semantic-conventions-genai",
+    "OpenAPI Specification": "https://spec.openapis.org/oas/latest.html",
+    "JSON Schema specification": "https://json-schema.org/specification",
+    "GitHub Actions documentation": "https://docs.github.com/en/actions/reference",
+    "Google Agent Development Kit documentation": "https://adk.dev/",
+}
+
+CHECKPOINT_SELF_CHECK_REQUIREMENTS = {
+    "module-01.md": {
+        "artifacts": ("artifacts/module-01/control-plane-blueprint.md",),
+        "markers": ("Scope", "Owner", "Evidence", "STOP"),
+        "stable_check": "python3 scripts/validate_course.py curriculum",
+    },
+    "module-02.md": {
+        "artifacts": (
+            "artifacts/module-02/source-register.md",
+            "artifacts/module-02/context-packet.md",
+            "artifacts/module-02/context-map-evidence-gate.md",
+        ),
+        "markers": ("Source owner", "Authority owner", "Evidence gate", "STOP"),
+        "stable_check": "python3 scripts/validate_course.py curriculum",
+    },
+    "module-03.md": {
+        "artifacts": (
+            "artifacts/module-03/role-contracts.md",
+            "artifacts/module-03/skill-and-permission-matrix.md",
+            "artifacts/module-03/coordinator-handoff.md",
+        ),
+        "markers": ("receiver", "STOP", "permission", "reviewer"),
+        "stable_check": "python3 scripts/validate_course.py curriculum",
+    },
+    "module-04.md": {
+        "artifacts": (
+            "artifacts/module-04/change-brief.md",
+            "artifacts/module-04/controlled-change-plan.md",
+            "artifacts/module-04/change-review-gate.md",
+        ),
+        "markers": ("acceptance", "focused", "review", "verdict"),
+        "stable_check": "PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q",
+    },
+    "module-05.md": {
+        "artifacts": (
+            "artifacts/module-05/traceability-matrix.md",
+            "artifacts/module-05/test-agent-workflow.md",
+            "artifacts/module-05/triage-and-release-gate.md",
+        ),
+        "markers": ("source", "check", "output", "STOP"),
+        "stable_check": "PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q",
+    },
+    "module-06.md": {
+        "artifacts": (
+            "artifacts/module-06/threat-model.md",
+            "artifacts/module-06/approval-matrix.md",
+            "artifacts/module-06/evaluation-dataset.md",
+            "artifacts/module-06/trace-record.md",
+            "artifacts/module-06/decision-log.md",
+        ),
+        "markers": ("SAFE-CHK-006", "trace_id", "redaction", "STOP"),
+        "stable_check": "python3 projects/reference-control-plane/scripts/check_reference_control_plane.py",
+    },
+}
 
 
 def extract_catalog_section(catalog: str, title: str) -> str:
@@ -152,6 +208,14 @@ def extract_catalog_section(catalog: str, title: str) -> str:
     start = catalog.index(marker)
     next_heading = catalog.find("\n### ", start + len(marker))
     return catalog[start:] if next_heading == -1 else catalog[start:next_heading]
+
+
+def extract_lesson_source_section(lesson: str) -> str:
+    return lesson.split("## Официальные источники", 1)[1]
+
+
+def extract_self_check_block(guide: str) -> str:
+    return guide.split("## Повторная команда", 1)[1]
 
 
 def test_required_assets_alias_matches_templates():
@@ -342,6 +406,18 @@ def test_task11_assessment_assets_are_complete_and_scored_consistently():
         ]
         assert len(rows) == 4, guide
 
+        self_check = extract_self_check_block(text)
+        assert "test -s" in self_check
+        assert "grep -Eq" in self_check
+
+        if guide.name != "module-07.md":
+            requirements = CHECKPOINT_SELF_CHECK_REQUIREMENTS[guide.name]
+            for artifact in requirements["artifacts"]:
+                assert artifact in self_check, (guide, artifact)
+            for marker in requirements["markers"]:
+                assert marker in self_check, (guide, marker)
+            assert requirements["stable_check"] in self_check, guide
+
     rubric = Path("assessments/final-rubric.md").read_text(encoding="utf-8")
     assert "11/15" in rubric
     assert "без нулей" in rubric
@@ -352,17 +428,93 @@ def test_task11_assessment_assets_are_complete_and_scored_consistently():
 
 def test_task11_lesson_source_matrix_and_catalog_are_traceable():
     matrix = Path("docs/lesson-source-matrix.md").read_text(encoding="utf-8")
-    rows = re.findall(r"^\|\s*(?:[1-9]|1[0-9]|2[01])\s*\|.*$", matrix, re.MULTILINE)
+    rows = [
+        line
+        for line in matrix.splitlines()
+        if re.match(r"^\|\s*(?:[1-9]|1[0-9]|2[01])\s*\|", line)
+    ]
     assert len(rows) == 21
-    assert all("Tier 1" in row and "2026-07-13" in row for row in rows)
+    row_numbers = []
+    lesson_sources = {
+        int(match.group(1)): path
+        for path in Path("curriculum").glob("module-*/lesson-*.md")
+        if (match := re.search(r"lesson-(\d+)-", path.name))
+    }
+    assert set(lesson_sources) == set(range(1, 22))
+    for row in rows:
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        lesson_number = int(cells[0])
+        primary_urls = re.findall(r"https?://[^)\s]+", cells[1])
+        supporting_urls = re.findall(r"https?://[^)\s]+", cells[2])
+        assert len(primary_urls) == 1, row
+        assert "Tier 1" in cells[1] and "2026-07-13" in cells[3], row
+        lesson_source_section = extract_lesson_source_section(
+            lesson_sources[lesson_number].read_text(encoding="utf-8")
+        )
+        assert primary_urls[0] in lesson_source_section, row
+        for url in supporting_urls:
+            assert url in lesson_source_section, row
+        row_numbers.append(lesson_number)
+
+    assert sorted(row_numbers) == list(range(1, 22))
+    assert len(set(row_numbers)) == 21
     assert "Поддерживающий Tier 2/3" in matrix
     assert "Ограничение вендора" in matrix
+    assert "только URL, который указан в `## Официальные источники`" in matrix
+    assert "catalog extensions" in matrix
 
     catalog = Path("docs/source-catalog.md").read_text(encoding="utf-8")
-    for title in TASK11_SOURCE_RECORDS:
+    catalog_urls = []
+    for title, url in TASK11_SOURCE_RECORDS.items():
         section = extract_catalog_section(catalog, title)
+        assert catalog.count(f"### {title}") == 1
         assert "- Роль:" in section
+        assert "Tier 1" in section
         assert "- Scope:" in section
-        assert "- Canonical URL:" in section
+        canonical_url = re.search(
+            r"^- Canonical URL: \[[^]]+\]\((https?://[^)]+)\)$",
+            section,
+            re.MULTILINE,
+        )
+        assert canonical_url and canonical_url.group(1) == url
         assert "- Checked: 2026-07-13." in section
         assert "Ограничения:" in section
+        catalog_urls.append(url)
+    assert len(catalog_urls) == len(set(catalog_urls))
+
+
+def test_task11_module07_self_check_covers_mappings_runs_and_safety_evidence():
+    guide = Path("assessments/checkpoints/module-07.md").read_text(encoding="utf-8")
+    self_check = extract_self_check_block(guide)
+
+    assert "test -s" in self_check
+    assert "grep -Eq" in self_check
+    assert "python3 -c" in self_check
+    for mapping_entry in CANONICAL_TEMPLATE_MAPPING:
+        assert mapping_entry["template"] in self_check
+        assert mapping_entry["artifact"] in self_check
+    for artifact in (
+        "artifacts/capstone/evidence-index.md",
+        "artifacts/capstone/run-evidence.md",
+        "artifacts/capstone/corrections.md",
+        "artifacts/capstone/risk-report.md",
+        "artifacts/capstone/final-report.md",
+        "artifacts/capstone/defense-notes.md",
+    ):
+        assert artifact in self_check
+    for marker in (
+        "N-01",
+        "F-01",
+        "F-02",
+        "F-03",
+        "STOP",
+        "owner",
+        "receiver",
+        "correction",
+        "re-run",
+        "resume",
+        "untrusted",
+        "least privilege",
+        "residual risk",
+    ):
+        assert marker in self_check
