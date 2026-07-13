@@ -257,7 +257,7 @@ def has_complete_tier_1_record(catalog: str, url: str) -> bool:
     for section in re.split(r"(?=^### )", catalog, flags=re.MULTILINE):
         if f"]({url})" not in section:
             continue
-        return all(
+        if all(
             marker in section
             for marker in (
                 "- Роль:",
@@ -267,7 +267,8 @@ def has_complete_tier_1_record(catalog: str, url: str) -> bool:
                 "- Checked: 2026-07-13.",
                 "Ограничения:",
             )
-        )
+        ):
+            return True
     return False
 
 
@@ -521,6 +522,9 @@ def test_task11_lesson_source_matrix_and_catalog_are_traceable():
     assert "catalog extensions" in matrix
 
     catalog = Path("docs/source-catalog.md").read_text(encoding="utf-8")
+    assert has_complete_tier_1_record(
+        catalog, "https://developers.openai.com/api/docs/guides/agents"
+    )
     tier_1_start = re.search(r"^## Tier 1:", catalog, re.MULTILINE).start()
     tier_2_start = re.search(r"^## Tier 2:", catalog, re.MULTILINE).start()
     tier_1_region = catalog[tier_1_start:tier_2_start]
