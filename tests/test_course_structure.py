@@ -3,6 +3,28 @@ from pathlib import Path
 from scripts.validate_course import REQUIRED_SECTIONS, validate_course, validate_lesson, validate_module
 
 
+VALID_MODULE_ROUTE = """## Обязательный локальный маршрут
+
+Прочитайте локальные Markdown-файлы, заполните артефакт и запустите pytest.
+Платный API-ключ и облачная платформа для обязательного маршрута не требуются.
+"""
+
+
+def write_complete_module(path, readme_text: str = VALID_MODULE_ROUTE):
+    path.mkdir()
+    (path / "README.md").write_text(readme_text, encoding="utf-8")
+    for number in range(1, 4):
+        write_complete_lesson(path / f"lesson-{number:02d}-topic.md")
+    (path / "checkpoint.md").write_text("# Checkpoint", encoding="utf-8")
+
+
+def write_complete_curriculum(path, readme_text: str):
+    path.mkdir()
+    (path / "README.md").write_text(readme_text, encoding="utf-8")
+    for number in range(1, 8):
+        write_complete_module(path / f"module-{number:02d}-topic")
+
+
 def write_complete_lesson(path, result: str = "Артефакт: `artifacts/module/output.md`."):
     sections = list(REQUIRED_SECTIONS)
     sections[0] = f"{sections[0]}\n\n{result}"
@@ -105,6 +127,34 @@ def test_module_keyword_claim_does_not_replace_local_route_heading(tmp_path):
     assert any("нет явного offline/no-key маршрута" in error for error in validate_module(module))
 
 
+def test_module_heading_without_actionable_local_route_is_rejected(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(module, "## Обязательный локальный маршрут")
+
+    assert any("локальный маршрут не описан" in error for error in validate_module(module))
+
+
+def test_module_rejects_a_paid_key_as_mandatory(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(
+        module,
+        """## Обязательный локальный маршрут
+
+Прочитайте локальные Markdown-файлы и заполните артефакт по шаблону.
+Для выполнения обязателен платный API-ключ.
+""",
+    )
+
+    assert any("требует платный API-ключ/облако" in error for error in validate_module(module))
+
+
+def test_module_accepts_a_paraphrased_local_no_paid_key_route(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(module)
+
+    assert validate_module(module) == []
+
+
 def test_curriculum_requires_self_contained_entry_policy(tmp_path):
     curriculum = tmp_path / "curriculum"
     curriculum.mkdir()
@@ -136,6 +186,86 @@ def test_curriculum_keyword_claim_does_not_replace_self_contained_route_structur
         (module / "checkpoint.md").write_text("# Checkpoint", encoding="utf-8")
 
     assert any("нет self-contained политики" in error for error in validate_course(curriculum))
+
+
+def test_curriculum_rejects_headings_without_an_actionable_local_route(tmp_path):
+    curriculum = tmp_path / "curriculum"
+    write_complete_curriculum(
+        curriculum,
+        """## Перед началом
+
+Обязательный маршрут самодостаточен: теория, задания, критерии готовности и
+маршруты исправления находятся локально в репозитории.
+
+## Два режима выполнения
+
+### Обязательный offline/no-key режим
+""",
+    )
+
+    assert any("локальный offline/no-key маршрут не описан" in error for error in validate_course(curriculum))
+
+
+def test_curriculum_rejects_cloud_access_as_mandatory(tmp_path):
+    curriculum = tmp_path / "curriculum"
+    write_complete_curriculum(
+        curriculum,
+        """## Перед началом
+
+Обязательный маршрут самодостаточен: теория, задания, критерии готовности и
+маршруты исправления находятся локально в репозитории.
+
+## Два режима выполнения
+
+### Обязательный offline/no-key режим
+
+Прочитайте локальные материалы и выполните проверки через pytest.
+Для прохождения нужен доступ к облаку.
+""",
+    )
+
+    assert any("требует платный API-ключ/облако" in error for error in validate_course(curriculum))
+
+
+def test_curriculum_rejects_a_paid_key_in_the_entry_policy(tmp_path):
+    curriculum = tmp_path / "curriculum"
+    write_complete_curriculum(
+        curriculum,
+        """## Перед началом
+
+Обязательный маршрут самодостаточен и хранится локально в репозитории.
+Для начала обязателен платный API-ключ.
+
+## Два режима выполнения
+
+### Обязательный offline/no-key режим
+
+Прочитайте локальные файлы, заполните Markdown-артефакт и запустите pytest.
+API-ключ и облачный аккаунт для этого пути не требуются.
+""",
+    )
+
+    assert any("требует платный API-ключ/облако" in error for error in validate_course(curriculum))
+
+
+def test_curriculum_accepts_a_paraphrased_self_contained_no_paid_key_route(tmp_path):
+    curriculum = tmp_path / "curriculum"
+    write_complete_curriculum(
+        curriculum,
+        """## Перед началом
+
+Весь обязательный материал самодостаточен и хранится локально в этом репозитории.
+
+## Два режима выполнения
+
+### Обязательный offline/no-key режим
+
+Пройдите задания по локальным файлам, сохраните Markdown-артефакты и запустите pytest.
+Платный API-ключ и облачный аккаунт для этого пути не требуются.
+""",
+    )
+
+    assert validate_course(curriculum) == []
 
 
 def test_complete_course_has_no_structure_errors():
