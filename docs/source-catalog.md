@@ -122,6 +122,84 @@
 - Redaction, data minimization и protected evidence определяет локальная course
   safety policy, а не semantic conventions.
 
+### DeepSeek API documentation
+
+- Роль: Tier 1 vendor API documentation для provider-neutral runtime comparison.
+- Scope: authentication, compatible API surface и model/runtime constraints в
+  вводной части курса; не workflow authority.
+- Canonical URL: [DeepSeek API documentation](https://api-docs.deepseek.com/)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- модели, compatibility и availability меняются; DeepSeek API не задает общие
+  permissions, product scope или acceptance rules.
+
+### Qwen documentation
+
+- Роль: Tier 1 vendor documentation для open-model/runtime comparison.
+- Scope: Qwen inference/deployment context в provider-neutral вводной части;
+  не обязательная лаборатория и не control-plane specification.
+- Canonical URL: [Qwen documentation](https://qwen.readthedocs.io/en/stable/getting_started/quickstart.html)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- hardware, model versions и serving stack зависят от окружения; Qwen docs не
+  определяют local roles, gates или approval.
+
+### A2A Protocol specification
+
+- Роль: Tier 1 interoperability specification для agent-to-agent task exchange.
+- Scope: tasks, messages, artifacts, Agent Cards, transports и authentication
+  boundaries как внешний контекст Module 3 handoff patterns.
+- Canonical URL: [A2A Protocol specification](https://a2a-protocol.org/latest/specification/)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- protocol interoperability не назначает local receiver, authority owner,
+  approval process или permission matrix.
+
+### OpenAPI Specification
+
+- Роль: Tier 1 normative specification для machine-readable HTTP API contracts.
+- Scope: operations, request/response schema и contract impact для Modules 2,
+  4 и 5.
+- Canonical URL: [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- OAS не принимает product decisions, не доказывает live behavior без checks и
+  не заменяет local source hierarchy.
+
+### JSON Schema specification
+
+- Роль: Tier 1 normative specification для JSON structure and validation.
+- Scope: reference при проверке schema vocabulary и interoperability; не
+  обязательный lesson dependency без actual schema task.
+- Canonical URL: [JSON Schema specification](https://json-schema.org/specification)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- JSON Schema validates data shape, но не определяет API semantics, permissions
+  или evidence/approval workflow.
+
+### GitHub Actions documentation
+
+- Роль: Tier 1 platform documentation для CI workflow vocabulary и execution.
+- Scope: workflow, job, step и security reference как comparison для Modules 4
+  and 5 repeatable gates.
+- Canonical URL: [GitHub Actions documentation](https://docs.github.com/en/actions/reference)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- GitHub-hosted behavior, runners и secrets are platform-specific; CI output не
+  является product approval и не обязателен для offline course route.
+
 ### Anthropic Claude Platform
 
 Ссылки:
@@ -147,7 +225,13 @@
 - Claude-специфичные рекомендации нельзя переносить как универсальные без сверки с другими официальными источниками;
 - материалы курсов Tier 2 должны быть адаптированы в русскоязычные самодостаточные уроки.
 
-### Model Context Protocol
+### Model Context Protocol specification
+
+- Роль: Tier 1 protocol specification для external context и tool integrations.
+- Scope: hosts, clients, servers, resources, prompts, tools, consent и transport
+  boundaries для Modules 1-3.
+- Canonical URL: [MCP specification](https://modelcontextprotocol.io/specification/latest)
+- Checked: 2026-07-13.
 
 Ссылки:
 
@@ -175,12 +259,18 @@
 - версии протокола, transport и security-рекомендации должны сверяться с текущей официальной спецификацией;
 - учебные упражнения должны объяснять MCP на русском без требования читать спецификацию целиком.
 
-### Google Gemini API, ADK и Agent Platform
+### Google Agent Development Kit documentation
+
+- Роль: Tier 1 framework documentation для managed, graph и multi-agent workflows.
+- Scope: tools, workflows, evaluation, tracing и safety examples для capstone
+  comparison; не mandatory implementation path.
+- Canonical URL: [Google Agent Development Kit documentation](https://adk.dev/)
+- Checked: 2026-07-13.
 
 Ссылки:
 
 - [Gemini API docs](https://ai.google.dev/gemini-api/docs)
-- [Google Agent Development Kit docs](https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/adk)
+- [Google Agent Development Kit docs](https://adk.dev/)
 
 Использовать для:
 

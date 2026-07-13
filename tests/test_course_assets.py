@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -130,6 +131,20 @@ CATALOG_SECTIONS = {
         "url": "https://github.com/open-telemetry/semantic-conventions-genai",
     },
 }
+
+TASK11_SOURCE_RECORDS = (
+    "DeepSeek API documentation",
+    "Qwen documentation",
+    "Model Context Protocol specification",
+    "A2A Protocol specification",
+    "NIST AI RMF Core",
+    "OWASP LLM01:2025 Prompt Injection",
+    "OpenTelemetry GenAI semantic conventions",
+    "OpenAPI Specification",
+    "JSON Schema specification",
+    "GitHub Actions documentation",
+    "Google Agent Development Kit documentation",
+)
 
 
 def extract_catalog_section(catalog: str, title: str) -> str:
@@ -301,3 +316,53 @@ def test_safety_authority_and_trace_source_contracts_are_consistent():
         assert f"- Scope: {expected['scope']}" in section
         assert f"]({expected['url']})" in section
         assert "- Checked: 2026-07-13." in section
+
+
+def test_task11_assessment_assets_are_complete_and_scored_consistently():
+    guides = sorted(Path("assessments/checkpoints").glob("module-*.md"))
+    assert [path.name for path in guides] == [
+        f"module-{number:02d}.md" for number in range(1, 8)
+    ]
+
+    for guide in guides:
+        text = guide.read_text(encoding="utf-8")
+        assert "## Артефакты" in text
+        assert "## Критерии оценки" in text
+        assert "## Наблюдаемое evidence" in text
+        assert "## Критические дефекты" in text
+        assert "## Маршрут исправления" in text
+        assert "## Повторная команда" in text
+        rows = [
+            line
+            for line in text.splitlines()
+            if line.startswith("|")
+            and not line.startswith("| Критерий")
+            and not line.startswith("| ---")
+            and line.count("|") == 5
+        ]
+        assert len(rows) == 4, guide
+
+    rubric = Path("assessments/final-rubric.md").read_text(encoding="utf-8")
+    assert "11/15" in rubric
+    assert "без нулей" in rubric
+    assert "safety checkpoint" in rubric
+    assert "reproducible" in rubric
+    assert "risk report" in rubric
+
+
+def test_task11_lesson_source_matrix_and_catalog_are_traceable():
+    matrix = Path("docs/lesson-source-matrix.md").read_text(encoding="utf-8")
+    rows = re.findall(r"^\|\s*(?:[1-9]|1[0-9]|2[01])\s*\|.*$", matrix, re.MULTILINE)
+    assert len(rows) == 21
+    assert all("Tier 1" in row and "2026-07-13" in row for row in rows)
+    assert "Поддерживающий Tier 2/3" in matrix
+    assert "Ограничение вендора" in matrix
+
+    catalog = Path("docs/source-catalog.md").read_text(encoding="utf-8")
+    for title in TASK11_SOURCE_RECORDS:
+        section = extract_catalog_section(catalog, title)
+        assert "- Роль:" in section
+        assert "- Scope:" in section
+        assert "- Canonical URL:" in section
+        assert "- Checked: 2026-07-13." in section
+        assert "Ограничения:" in section
