@@ -3,13 +3,17 @@
 Capstone соединяет артефакты модулей 1-6 в один проверяемый control plane.
 Студент не создает еще один набор теоретических заметок: он собирает пакет,
 проводит нормальный и отказные прогоны, затем защищает архитектуру и остаточные
-риски. Обязательный маршрут работает локально с prepared runs, Markdown, YAML,
-Git и pytest; API-ключ, облако и внешний агент не нужны.
+риски.
 
 1. [Сборка и валидация контрактов](lesson-19-assemble-control-plane.md) - полный пакет в `artifacts/capstone/`.
 2. [Контрольный запуск и failure injection](lesson-20-failure-injection-improvement.md) - `run-evidence.md` и `corrections.md`.
 3. [Аудит, защита и roadmap](lesson-21-audit-defense-roadmap.md) - `risk-report.md` и защита.
 4. [Checkpoint 7](checkpoint.md) - репетиция финальной защиты по rubric.
+
+## Обязательный локальный маршрут
+
+Обязательный маршрут работает локально с prepared runs, Markdown, YAML, Git и
+pytest; API-ключ, облако и внешний агент не нужны.
 
 ## Вход и результат
 

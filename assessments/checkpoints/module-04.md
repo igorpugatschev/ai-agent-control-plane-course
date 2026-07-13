@@ -1,5 +1,7 @@
 # Module 04 checkpoint assessment guide
 
+[Все checkpoint guides](README.md)
+
 ## Артефакты
 
 - `artifacts/module-04/change-brief.md`.

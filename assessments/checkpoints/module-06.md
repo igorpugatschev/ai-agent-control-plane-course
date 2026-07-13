@@ -1,5 +1,7 @@
 # Module 06 checkpoint assessment guide
 
+[Все checkpoint guides](README.md)
+
 ## Артефакты
 
 - `artifacts/module-06/threat-model.md`.

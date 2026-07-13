@@ -9,7 +9,7 @@
 3. [Engineering gates и handoff](lesson-12-engineering-gates.md) - `artifacts/module-04/change-review-gate.md`.
 4. [Checkpoint 4](checkpoint.md) - отказ от scope drift и bounded revision.
 
-## Как проходить модуль
+## Обязательный локальный маршрут
 
 Начните с `artifacts/module-02/context-packet.md`, `artifacts/module-02/context-map-evidence-gate.md` и `artifacts/module-03/coordinator-handoff.md`. Затем прочитайте `projects/training-task-app/requirements.md`, `src/task_app/models.py`, `src/task_app/service.py`, `tests/test_service.py`, `api/openapi.yaml` и `README.md`. Форму процесса и независимой проверки берите из `templates/workflow.md` и `templates/review-gate.md`.
 

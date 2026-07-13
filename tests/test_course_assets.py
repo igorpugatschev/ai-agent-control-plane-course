@@ -3,9 +3,17 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 
 LINK_RE = re.compile(r"\[[^]]+\]\(([^)]+)\)")
+
+
+def local_markdown_path(raw_target: str) -> str | None:
+    parsed = urlsplit(raw_target)
+    if parsed.scheme or parsed.netloc:
+        return None
+    return unquote(parsed.path) or None
 
 
 TEMPLATES = (
@@ -615,10 +623,25 @@ def test_internal_markdown_links_resolve():
     for path in files:
         text = path.read_text(encoding="utf-8")
         for raw_target in LINK_RE.findall(text):
-            target = raw_target.split("#", 1)[0]
-            if not target or "://" in target or target.startswith("mailto:"):
+            target = local_markdown_path(raw_target)
+            if target is None:
                 continue
             assert (path.parent / target).resolve().exists(), f"{path}: {raw_target}"
+
+
+def test_local_markdown_path_strips_query_and_fragment_from_relative_path():
+    assert local_markdown_path("../README.md?via=checkpoint#result") == "../README.md"
+
+
+def test_local_markdown_path_skips_external_schemes_and_network_locations():
+    for target in (
+        "http://example.com/guide.md",
+        "https://example.com/guide.md",
+        "mailto:course@example.com",
+        "ftp://example.com/guide.md",
+        "//example.com/guide.md",
+    ):
+        assert local_markdown_path(target) is None
 
 
 def test_source_matrix_contains_all_21_lessons():
@@ -630,6 +653,14 @@ def test_source_matrix_contains_all_21_lessons():
 def test_seven_checkpoint_guides_exist():
     guides = sorted(Path("assessments/checkpoints").glob("module-*.md"))
     assert len(guides) == 7
+
+
+def test_checkpoint_index_links_each_module_guide_and_each_guide_links_back():
+    index = Path("assessments/checkpoints/README.md").read_text(encoding="utf-8")
+    for number in range(1, 8):
+        guide = Path(f"assessments/checkpoints/module-{number:02d}.md")
+        assert f"](module-{number:02d}.md)" in index
+        assert "](README.md)" in guide.read_text(encoding="utf-8")
 
 
 def test_student_project_tracks_exist():

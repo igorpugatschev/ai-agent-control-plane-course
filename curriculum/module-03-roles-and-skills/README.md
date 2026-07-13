@@ -9,7 +9,7 @@
 3. [Маршрутизация coordinator и handoff](lesson-09-coordinator-handoff.md) - `artifacts/module-03/coordinator-handoff.md`.
 4. [Checkpoint 3](checkpoint.md) - проверка STOP и передачи при запросе вне permission implementer-а.
 
-## Как проходить модуль
+## Обязательный локальный маршрут
 
 Используйте накопленные `artifacts/module-01/control-plane-blueprint.md` и артефакты Module 2, а затем заполняйте локальные Markdown-файлы по шаблонам `templates/agent-role.md`, `templates/skill-contract.md` и `templates/handoff.md`. Обязательный путь не требует API-ключа: уроки содержат подготовленные ответы и локальные проверки. Live prompt разрешен только как черновик; он не создает permission, approval или evidence.
 

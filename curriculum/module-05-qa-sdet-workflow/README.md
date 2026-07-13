@@ -9,7 +9,7 @@
 3. [Регрессия, triage и release gate](lesson-15-regression-triage-release-gate.md) - `artifacts/module-05/triage-and-release-gate.md`.
 4. [Checkpoint 5](checkpoint.md) - интеграция трассировки, defect/flaky evidence и решения о выпуске.
 
-## Как проходить модуль
+## Обязательный локальный маршрут
 
 Сначала прочитайте локальные `requirements.md`, `api/openapi.yaml`, `tests/test_service.py`, `scenarios/defect-report.md` и `scenarios/flaky-run.log` внутри `projects/training-task-app/`. Затем используйте contracts [QA/SDET](../../agents/qa-sdet.md), [risk reviewer](../../agents/risk-reviewer.md), [workflow](../../templates/workflow.md), [review-gate](../../templates/review-gate.md) и [handoff](../../templates/handoff.md).
 

@@ -1,5 +1,7 @@
 # Module 02 checkpoint assessment guide
 
+[Все checkpoint guides](README.md)
+
 ## Артефакты
 
 - `artifacts/module-02/source-register.md`.

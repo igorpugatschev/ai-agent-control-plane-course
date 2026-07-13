@@ -40,10 +40,64 @@ def test_lesson_requires_named_artifact_in_its_outcome(tmp_path):
     )
 
 
+def test_lesson_does_not_count_an_artifact_before_its_outcome_section(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(lesson, result="Студент объяснит разницу между ролью и tool.")
+    lesson.write_text(
+        "`artifacts/preamble-only.md`\n\n" + lesson.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    assert any(
+        "нет именованного артефакта в результате урока" in error
+        for error in validate_lesson(lesson)
+    )
+
+
+def test_lesson_counts_an_artifact_inside_its_outcome_section(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(lesson)
+
+    assert validate_lesson(lesson) == []
+
+
+def test_lesson_does_not_count_a_source_before_its_sources_section(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(lesson)
+    text = lesson.read_text(encoding="utf-8").replace(
+        "## Официальные источники\n\nhttps://example.com/official",
+        "## Официальные источники\n\nЛокальная теория достаточна.",
+    )
+    lesson.write_text("https://example.com/preamble\n\n" + text, encoding="utf-8")
+
+    assert "нет ссылки на официальный источник" in validate_lesson(lesson)
+
+
+def test_lesson_counts_a_source_inside_its_sources_section(tmp_path):
+    lesson = tmp_path / "lesson.md"
+    write_complete_lesson(lesson)
+
+    assert validate_lesson(lesson) == []
+
+
 def test_module_requires_an_explicit_local_no_key_route(tmp_path):
     module = tmp_path / "module-01-foundations"
     module.mkdir()
     (module / "README.md").write_text("Обязательный маршрут локальный.", encoding="utf-8")
+    for number in range(1, 4):
+        write_complete_lesson(module / f"lesson-0{number}-topic.md")
+    (module / "checkpoint.md").write_text("# Checkpoint", encoding="utf-8")
+
+    assert any("нет явного offline/no-key маршрута" in error for error in validate_module(module))
+
+
+def test_module_keyword_claim_does_not_replace_local_route_heading(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    module.mkdir()
+    (module / "README.md").write_text(
+        "Обязательный маршрут полностью локальный и не требует API-ключа.",
+        encoding="utf-8",
+    )
     for number in range(1, 4):
         write_complete_lesson(module / f"lesson-0{number}-topic.md")
     (module / "checkpoint.md").write_text("# Checkpoint", encoding="utf-8")
@@ -58,9 +112,25 @@ def test_curriculum_requires_self_contained_entry_policy(tmp_path):
     for number in range(1, 8):
         module = curriculum / f"module-{number:02d}-topic"
         module.mkdir()
-        (module / "README.md").write_text(
-            "Обязательный локальный маршрут не требует API-ключа.", encoding="utf-8"
-        )
+        (module / "README.md").write_text("## Обязательный локальный маршрут", encoding="utf-8")
+        for lesson_number in range(1, 4):
+            write_complete_lesson(module / f"lesson-{lesson_number:02d}-topic.md")
+        (module / "checkpoint.md").write_text("# Checkpoint", encoding="utf-8")
+
+    assert any("нет self-contained политики" in error for error in validate_course(curriculum))
+
+
+def test_curriculum_keyword_claim_does_not_replace_self_contained_route_structure(tmp_path):
+    curriculum = tmp_path / "curriculum"
+    curriculum.mkdir()
+    (curriculum / "README.md").write_text(
+        "Курс самодостаточен, но обязательный маршрут не самодостаточен.",
+        encoding="utf-8",
+    )
+    for number in range(1, 8):
+        module = curriculum / f"module-{number:02d}-topic"
+        module.mkdir()
+        (module / "README.md").write_text("## Обязательный локальный маршрут", encoding="utf-8")
         for lesson_number in range(1, 4):
             write_complete_lesson(module / f"lesson-{lesson_number:02d}-topic.md")
         (module / "checkpoint.md").write_text("# Checkpoint", encoding="utf-8")

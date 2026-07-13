@@ -1,5 +1,7 @@
 # Module 03 checkpoint assessment guide
 
+[Все checkpoint guides](README.md)
+
 ## Артефакты
 
 - `artifacts/module-03/role-contracts.md`.

@@ -13,7 +13,7 @@ human approval, после чего измеряет поведение на cas
 3. [Оценка, трассировка и журнал решений](lesson-18-evaluation-tracing-decision-log.md) - `artifacts/module-06/evaluation-dataset.md`, `trace-record.md` и `decision-log.md`.
 4. [Checkpoint 6](checkpoint.md) - проверка реакции на недоверенную инструкцию в документации.
 
-## Как проходить модуль
+## Обязательный локальный маршрут
 
 Обязательный маршрут локальный: используйте prepared response из уроков,
 `projects/training-task-app/` и contracts из `agents/` и `templates/`. Не нужны

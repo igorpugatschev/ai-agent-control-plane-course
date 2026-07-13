@@ -1,5 +1,7 @@
 # Module 05 checkpoint assessment guide
 
+[Все checkpoint guides](README.md)
+
 ## Артефакты
 
 - `artifacts/module-05/traceability-matrix.md`.

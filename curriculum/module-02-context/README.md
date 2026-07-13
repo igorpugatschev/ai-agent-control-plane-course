@@ -9,7 +9,7 @@
 3. [Карта контекста и evidence gate](lesson-06-context-map-evidence-gate.md) - `artifacts/module-02/context-map-evidence-gate.md`.
 4. [Checkpoint 2](checkpoint.md) - проверка трех артефактов на конфликте stale-документации.
 
-## Как проходить модуль
+## Обязательный локальный маршрут
 
 Сначала прочитайте локальные входные данные: `requirements.md`, `api/openapi.yaml`, `scenarios/stale-documentation.md` и `tests/test_service.py` учебного стенда. Уроки содержат подготовленные ответы, поэтому обязательный путь не требует API-ключа или внешней документации. Необязательный живой агент может подготовить черновик, но его текст не становится evidence без проверки по локальным файлам и командам.
 

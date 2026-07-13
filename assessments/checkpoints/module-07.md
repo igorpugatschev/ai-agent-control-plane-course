@@ -1,5 +1,7 @@
 # Module 07 checkpoint assessment guide
 
+[Все checkpoint guides](README.md)
+
 ## Артефакты
 
 - `control-plane.yaml` и десять mapped `artifacts/capstone/` deliverables.

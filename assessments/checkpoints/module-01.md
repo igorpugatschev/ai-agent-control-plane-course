@@ -1,5 +1,7 @@
 # Module 01 checkpoint assessment guide
 
+[Все checkpoint guides](README.md)
+
 ## Артефакты
 
 - `artifacts/module-01/control-plane-blueprint.md`.
