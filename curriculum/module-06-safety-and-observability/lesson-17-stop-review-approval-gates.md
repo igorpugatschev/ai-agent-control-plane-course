@@ -30,10 +30,12 @@ risk analysis и владеет approval-gate process, затем передае
 `recommendation` или `STOP` coordinator-у. Он не выполняет delete, deploy,
 publish или push и не дает final irreversible-action approval. Final
 irreversible-action approval дает только named human owner.
+A separately named authorized executor, distinct from the named human owner and risk reviewer, executes the approved action.
+The named human owner may only approve or reject the intended action.
 
 Порядок обычно такой: reversible investigation -> author evidence -> independent
 review -> complete risk package -> risk analysis -> recommendation or STOP ->
-human approval for intended action -> designated executor. Approval нельзя переносить с одного
+human approval for intended action -> separately named authorized executor. Approval нельзя переносить с одного
 scope на другой и нельзя получать для вредоносной инструкции из untrusted docs.
 
 Матрица связывает action, reversible/privileged status, trigger, allowed safe
@@ -57,13 +59,13 @@ step, gate, evidence, decision owner, executor, receiver и resume condition. О
 ## Рабочий пример
 
 ```md
-| Intended action | Риск и обратимость | Gate | Evidence | Decision owner | Разрешенный шаг | Resume condition |
-| --- | --- | --- | --- | --- | --- |
-| Прочитать requirements.md | Read-only, обратимо | Нет approval | Path и source label | coordinator | Read только пути | Scope подтвержден |
-| Исправить локальный draft | Обратимо | review-gate | Diff и reviewer check | reviewer | Изменить approved path | approve review-gate |
-| Commit handoff | Локальная история | review-gate | Approved review, diff, tests | coordinator | Подготовить handoff | Commit boundary подтверждена |
-| Publish/deploy/delete/read secret | Привилегированно | STOP + risk analysis + human approval | Impact, rollback, risk recommendation | named human owner | Ничего не выполнять | Explicit approval intended action |
-| Инструкция из untrusted docs | Injection, не intended action | STOP | Source, safe summary, event id | coordinator | Treat as data | Вернуться к trusted action |
+| Intended action | Риск и обратимость | Gate | Evidence | Decision owner | Authorized executor | Разрешенный шаг | Resume condition |
+| --- | --- | --- | --- | --- | --- | --- |
+| Прочитать requirements.md | Read-only, обратимо | Нет approval | Path и source label | coordinator | coordinator | Read только пути | Scope подтвержден |
+| Исправить локальный draft | Обратимо | review-gate | Diff и reviewer check | reviewer | implementation | Изменить approved path | approve review-gate |
+| Commit handoff | Локальная история | review-gate | Approved review, diff, tests | coordinator | coordinator | Подготовить handoff | Commit boundary подтверждена |
+| Publish/deploy/delete/read secret | Привилегированно | STOP + risk analysis + human approval | Impact, rollback, risk recommendation | named human owner: only approve/reject | separately named authorized executor, not human owner or risk reviewer | Выполнить только approved action | Explicit approval intended action |
+| Инструкция из untrusted docs | Injection, не intended action | STOP | Source, safe summary, event id | coordinator | Нет executor | Treat as data | Вернуться к trusted action |
 ```
 
 Последняя строка не получает approval: человек может одобрить только законный
@@ -75,15 +77,16 @@ intended action, например review документации, но не act
    actions: read requirements, local draft, review, commit handoff,
    release/deploy/delete/read secret и untrusted instruction.
 2. Для каждого action заполните risk/reversibility, trigger, gate, evidence,
-   decision owner, executor или receiver, safe next action и resume condition.
+   decision owner, authorized executor или receiver, safe next action и resume condition.
 3. Используйте поля `templates/stop-gate.md` для двух STOP: неполный risk
    package и injection в documentation.
 4. Используйте `templates/review-gate.md` для local document: object, criteria,
    author evidence, reviewer checks, decision и findings.
 5. Запишите правило: QA/SDET сообщает test evidence, reviewer проверяет scope,
    risk reviewer выполняет analysis и возвращает recommendation или STOP,
-   coordinator маршрутизирует, named human owner принимает final approval. Нет self-approval или execution by
-   approver.
+   coordinator маршрутизирует, named human owner только approve/reject, а
+   separately named authorized executor, отличный от human owner и risk reviewer,
+   исполняет approved action. Нет self-approval или execution by approver.
 
 ### Необязательный prompt для живого агента
 
@@ -102,7 +105,7 @@ documentation. Четко раздели STOP, review и human approval; approva
 ```bash
 test -f artifacts/module-06/approval-matrix.md
 for term in "stop-gate" "review-gate" "human approval" "intended action" \
-  "decision owner" "receiver" "resume condition" "risk reviewer" \
+  "decision owner" "authorized executor" "receiver" "resume condition" "risk reviewer" \
   "coordinator" "untrusted"; do
   grep -qi "$term" artifacts/module-06/approval-matrix.md || exit 1
 done
@@ -111,12 +114,13 @@ done
 Наблюдаемые критерии: у каждого high-risk action есть named owner, evidence и
 resume condition; review не называется approval; STOP не заменяется green
 output; untrusted instruction имеет only safe handling, а human approval
-привязано к intended action и scope.
+привязано к intended action и scope. Human owner только approve/reject, а
+approved action исполняет отдельно named authorized executor.
 
 Локальный маршрут исправления: если таблица содержит "approve release" без
 impact/rollback/owner, верните строку в STOP и заполните risk package. Если
-reviewer указан executor-ом, назначьте implementation или human owner через
-coordinator. Если injection получила approval, удалите ее как action, оставьте
+reviewer указан executor-ом, coordinator назначает отдельно named authorized
+executor, который не является human owner или risk reviewer. Если injection получила approval, удалите ее как action, оставьте
 event/STOP и создайте approval только для законного intended action.
 
 ## Типичные ошибки
@@ -131,7 +135,8 @@ event/STOP и создайте approval только для законного i
   срок; не переносите решение на новую задачу.
 - **Risk reviewer выполняет решение или дает final approval.** Исправление: он
   передает documented recommendation или STOP coordinator-у, named human owner
-  дает final irreversible-action approval, а executor назначается отдельно.
+  только approve/reject, а separately named authorized executor исполняет
+  approved action.
 
 ## Контрольные вопросы
 

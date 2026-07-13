@@ -690,6 +690,12 @@ git commit -m "docs: add safety and observability module"
   stand pass. The root course validator remains blocked by the pre-Task-10
   baseline of six modules and 18 lessons, so Module 7 is deliberately out of
   scope for this Task 9 fix.
+- Final fix: a separately named authorized executor, distinct from the named
+  human owner and risk reviewer, executes an approved action; the human owner
+  may only approve or reject, while the risk reviewer retains risk analysis,
+  approval-gate ownership and recommendation/`STOP`. The regression test now
+  checks this separation and validates role, scope, exact canonical URL and
+  checked date independently for each NIST, OWASP and OpenTelemetry section.
 
 ---
 
