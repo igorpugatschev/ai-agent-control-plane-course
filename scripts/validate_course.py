@@ -52,7 +52,8 @@ CLOUD_ACCESS_RE = re.compile(
     re.IGNORECASE,
 )
 DEPENDENCY_REQUIREMENT_RE = re.compile(
-    r"\b(?:обязател\w*|необходим\w*|нуж\w*|понадоб\w*|требу\w*|required|must)\b",
+    r"\b(?:обязател(?:ен|ьна|ьно|ьны)|необходим(?:а|о|ы)?|нуж(?:ен|на|но|ны)|"
+    r"понадоб(?:ится|ятся)|требу(?:ется|ются|ет|ют)|required|must)\b",
     re.IGNORECASE,
 )
 DEPENDENCY_ABSENCE_RE = re.compile(
@@ -70,6 +71,7 @@ DEPENDENCIES = (
     (PAID_ACCESS_RE, NO_KEY_RE, "платный API-ключ", "платного API-ключа"),
     (CLOUD_ACCESS_RE, None, "облачную зависимость", "облачной зависимости"),
 )
+MAX_DEPENDENCY_CUE_DISTANCE = 64
 
 
 def extract_markdown_section(text: str, heading: str, level: int) -> str | None:
@@ -86,18 +88,73 @@ def extract_level_two_section(text: str, heading: str) -> str | None:
     return extract_markdown_section(text, heading, level=2)
 
 
+def requirement_cues(text: str) -> list[re.Match[str]]:
+    matches: list[re.Match[str]] = []
+    for match in DEPENDENCY_REQUIREMENT_RE.finditer(text):
+        prefix = text[max(0, match.start() - 8) : match.start()]
+        if re.search(r"\bне\s*$", prefix, re.IGNORECASE) is None:
+            matches.append(match)
+    return matches
+
+
+def has_dependency_claim(text: str) -> bool:
+    has_target = any(
+        pattern.search(text)
+        for pattern in (PAID_ACCESS_RE, NO_KEY_RE, CLOUD_ACCESS_RE)
+    )
+    return has_target and bool(
+        DEPENDENCY_ABSENCE_RE.search(text) or requirement_cues(text)
+    )
+
+
+def dependency_clauses(text: str) -> list[str]:
+    clauses: list[str] = []
+    for clause in CLAUSE_SPLIT_RE.split(text):
+        comma_parts = re.split(r",\s*", clause)
+        if sum(has_dependency_claim(part) for part in comma_parts) >= 2:
+            clauses.extend(comma_parts)
+        else:
+            clauses.append(clause)
+    return clauses
+
+
 def dependency_evidence(
     text: str, target: re.Pattern[str], alias: re.Pattern[str] | None
 ) -> tuple[bool, bool]:
     absence = False
     required = False
-    for clause in CLAUSE_SPLIT_RE.split(text):
-        if target.search(clause) is None and (alias is None or alias.search(clause) is None):
+    for clause in dependency_clauses(text):
+        targets = list(target.finditer(clause))
+        if alias is not None:
+            targets.extend(alias.finditer(clause))
+        if not targets:
             continue
-        if DEPENDENCY_ABSENCE_RE.search(clause):
-            absence = True
-        elif DEPENDENCY_REQUIREMENT_RE.search(clause):
-            required = True
+
+        cues = [
+            (match, "absence") for match in DEPENDENCY_ABSENCE_RE.finditer(clause)
+        ]
+        cues.extend((match, "required") for match in requirement_cues(clause))
+
+        for target_match in targets:
+            ranked_cues = sorted(
+                (
+                    max(
+                        target_match.start() - cue.end(),
+                        cue.start() - target_match.end(),
+                        0,
+                    ),
+                    kind,
+                )
+                for cue, kind in cues
+            )
+            if not ranked_cues or ranked_cues[0][0] > MAX_DEPENDENCY_CUE_DISTANCE:
+                continue
+            nearest_distance = ranked_cues[0][0]
+            nearest_kinds = {
+                kind for distance, kind in ranked_cues if distance == nearest_distance
+            }
+            absence = absence or "absence" in nearest_kinds
+            required = required or "required" in nearest_kinds
     return absence, required
 
 
