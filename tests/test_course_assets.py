@@ -59,6 +59,17 @@ AUTHORIZED_EXECUTOR_POLICY = (
 )
 HUMAN_OWNER_DECISION_POLICY = "The named human owner may only approve or reject the intended action."
 FORBIDDEN_OWNER_AS_EXECUTOR_PHRASE = "implementation или human owner через coordinator"
+PRIVILEGED_ACTION_ROW_PREFIX = "| Publish/deploy/delete/read secret |"
+EXPECTED_PRIVILEGED_MATRIX_CELLS = (
+    "Publish/deploy/delete/read secret",
+    "Привилегированно",
+    "STOP + risk analysis + human approval",
+    "Impact, rollback, risk recommendation",
+    "named human owner: only approve/reject",
+    "separately named authorized executor, not human owner or risk reviewer",
+    "Выполнить только approved action",
+    "Explicit approval intended action",
+)
 
 CATALOG_SECTIONS = {
     "NIST AI RMF Core": {
@@ -119,6 +130,43 @@ def test_safety_authority_and_trace_source_contracts_are_consistent():
     assert AUTHORIZED_EXECUTOR_POLICY in lesson17
     assert HUMAN_OWNER_DECISION_POLICY in lesson17
     assert FORBIDDEN_OWNER_AS_EXECUTOR_PHRASE not in lesson17
+
+    privileged_row = next(
+        line for line in lesson17.splitlines() if line.startswith(PRIVILEGED_ACTION_ROW_PREFIX)
+    )
+    privileged_cells = tuple(
+        cell.strip() for cell in privileged_row.strip().strip("|").split("|")
+    )
+    assert privileged_cells == EXPECTED_PRIVILEGED_MATRIX_CELLS
+
+    decision_owner = privileged_cells[4]
+    authorized_executor = privileged_cells[5]
+    assert decision_owner == "named human owner: only approve/reject"
+    executor_role, separator, executor_exclusions = authorized_executor.partition(", not ")
+    assert executor_role == "separately named authorized executor"
+    assert separator
+    assert executor_exclusions == "human owner or risk reviewer"
+    assert "human owner" not in executor_role
+    assert "risk reviewer" not in executor_role
+
+    forbidden_actions = risk_reviewer.split("## Запрещенные действия", 1)[1].split(
+        "## Stop conditions", 1
+    )[0]
+    forbidden_actions = " ".join(forbidden_actions.split())
+    for forbidden_term in (
+        "не удалять",
+        "не публиковать",
+        "не делать deploy",
+        "не выполнять `git push`",
+        "не выдавать final irreversible-action approval",
+    ):
+        assert forbidden_term in forbidden_actions
+
+    implementation = " ".join(Path("agents/implementation.md").read_text(encoding="utf-8").split())
+    assert (
+        "не делать deploy, release или `git push` без отдельного documented approval и нового назначения."
+        in implementation
+    )
 
     trace_lesson = Path(
         "curriculum/module-06-safety-and-observability/lesson-18-evaluation-tracing-decision-log.md"
