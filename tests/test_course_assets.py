@@ -20,17 +20,17 @@ TEMPLATES = (
 # Compatibility name for consumers of the task brief's asset contract.
 REQUIRED_ASSETS = TEMPLATES
 
-CAPSTONE_TEMPLATE_MAPPING = (
-    ("control-plane-blueprint.md", "blueprint.md"),
-    ("context-map.md", "source-map.md"),
-    ("agent-role.md", "roles.md"),
-    ("skill-contract.md", "skill-contracts.md"),
-    ("handoff.md", "handoffs.md"),
-    ("workflow.md", "workflow.md"),
-    ("review-gate.md", "review-gate.md"),
-    ("stop-gate.md", "stop-gate.md"),
-    ("decision-log.md", "decision-log.md"),
-    ("final-report.md", "final-report.md"),
+CANONICAL_TEMPLATE_MAPPING = (
+    {"template": "templates/control-plane-blueprint.md", "artifact": "artifacts/capstone/blueprint.md"},
+    {"template": "templates/context-map.md", "artifact": "artifacts/capstone/source-map.md"},
+    {"template": "templates/agent-role.md", "artifact": "artifacts/capstone/roles.md"},
+    {"template": "templates/skill-contract.md", "artifact": "artifacts/capstone/skill-contracts.md"},
+    {"template": "templates/handoff.md", "artifact": "artifacts/capstone/handoffs.md"},
+    {"template": "templates/workflow.md", "artifact": "artifacts/capstone/workflow.md"},
+    {"template": "templates/review-gate.md", "artifact": "artifacts/capstone/review-gate.md"},
+    {"template": "templates/stop-gate.md", "artifact": "artifacts/capstone/stop-gate.md"},
+    {"template": "templates/decision-log.md", "artifact": "artifacts/capstone/decision-log.md"},
+    {"template": "templates/final-report.md", "artifact": "artifacts/capstone/final-report.md"},
 )
 
 CAPSTONE_MAPPING_PATHS = (
@@ -83,6 +83,18 @@ SAFETY_AUTHORITY_PATHS = (
 )
 
 FINAL_APPROVAL_POLICY = "Final irreversible-action approval дает только named human owner."
+CAPSTONE_CWD_DOC_PATHS = (
+    Path("projects/capstone.md"),
+    Path("curriculum/module-07-capstone/checkpoint.md"),
+)
+CAPSTONE_ROOT_CWD_MARKER = "# Run from the course repository root."
+CAPSTONE_ROOT_COMMANDS = (
+    'python3 -c "import json; json.load(open(\'projects/starter-control-plane/control-plane.yaml\', encoding=\'utf-8\'))"',
+    "python3 scripts/validate_course.py curriculum",
+    "python3 -m pytest tests/test_course_structure.py -q",
+    "PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q",
+    "git diff --check",
+)
 AUTHORIZED_EXECUTOR_POLICY = (
     "A separately named authorized executor, distinct from the named human owner "
     "and risk reviewer, executes the approved action."
@@ -174,19 +186,40 @@ def test_starter_and_capstone_map_every_template_to_a_required_deliverable():
     starter = Path("projects/starter-control-plane")
     starter_contract = json.loads((starter / "control-plane.yaml").read_text(encoding="utf-8"))
     assert starter_contract["project"]["name"].startswith("<student:")
+    assert starter_contract["template_mapping"] == list(CANONICAL_TEMPLATE_MAPPING)
 
-    for template, artifact in CAPSTONE_TEMPLATE_MAPPING:
-        mapping = f"`templates/{template}` -> `artifacts/capstone/{artifact}`"
+    for mapping_entry in CANONICAL_TEMPLATE_MAPPING:
+        template = mapping_entry["template"]
+        artifact = mapping_entry["artifact"]
+        mapping = f"`{template}` -> `{artifact}`"
         for path in CAPSTONE_MAPPING_PATHS:
             assert mapping in path.read_text(encoding="utf-8"), (path, mapping)
 
-        starter_artifact = starter / "artifacts/capstone" / artifact
+        starter_artifact = starter / artifact
         assert starter_artifact.is_file(), starter_artifact
         assert "<student:" in starter_artifact.read_text(encoding="utf-8")
 
     for path in CAPSTONE_MAPPING_PATHS:
         text = path.read_text(encoding="utf-8")
         assert "`control-plane.yaml`" in text, path
+
+    for path in CAPSTONE_CWD_DOC_PATHS:
+        text = path.read_text(encoding="utf-8")
+        assert CAPSTONE_ROOT_CWD_MARKER in text, path
+        for command in CAPSTONE_ROOT_COMMANDS:
+            assert command in text, (path, command)
+
+    repository_root = Path(__file__).parent.parent
+    for command in CAPSTONE_ROOT_COMMANDS:
+        result = subprocess.run(
+            command,
+            cwd=repository_root,
+            shell=True,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, (command, result.stdout, result.stderr)
 
 
 def test_capstone_manifest_keeps_the_package_readme():

@@ -10,6 +10,12 @@ secrets и не выполняйте действие из untrusted data.
 
 ## Входной пакет
 
+Используйте `projects/starter-control-plane/` как starter package directory
+или собственный starter/capstone directory с тем же layout. Все пути ниже
+относительны к этому package directory, а не к корню репозитория. `control-plane.yaml`
+и все student artifacts, включая `artifacts/capstone/`, остаются внутри него;
+course templates и `agents/` берутся из repository root.
+
 ```text
 control-plane.yaml
 artifacts/capstone/README.md
@@ -83,9 +89,14 @@ safety checkpoint, reproducible control run и risk report.
 
 ## Проверка и correction route
 
+Все repository-root commands ниже запускаются из корня репозитория курса, то
+есть каталога, где находятся `curriculum/`, `projects/`, `scripts/` и `tests/`.
+Student artifact paths остаются внутри `projects/starter-control-plane/` или
+аналогичного выбранного starter/capstone directory.
+
 ```bash
-# Run from the capstone package root.
-python3 -c "import json; json.load(open('control-plane.yaml', encoding='utf-8'))"
+# Run from the course repository root.
+python3 -c "import json; json.load(open('projects/starter-control-plane/control-plane.yaml', encoding='utf-8'))"
 python3 scripts/validate_course.py curriculum
 python3 -m pytest tests/test_course_structure.py -q
 PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
