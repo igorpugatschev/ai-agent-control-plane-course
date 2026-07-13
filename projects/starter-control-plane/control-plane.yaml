@@ -1,0 +1,44 @@
+schema_version: 1
+project:
+  name: "<student: short control-plane name>"
+  domain: "<student: domain, not a copied reference answer>"
+  goal: "<student: measurable result>"
+  intended_action: "<student: bounded action from trusted scope>"
+  scope:
+    included: "<student: explicit included boundary>"
+    excluded: "<student: explicit excluded boundary>"
+context:
+  trusted_sources:
+    - path: "<student: repo-relative source path>"
+      purpose: "<student: decision supported by this source>"
+      freshness_command: "<student: local version or SHA command>"
+      source_owner: "<student: documented owner or unknown>"
+      authority_owner: "<student: decision authority>"
+  untrusted_data:
+    - path: "<student: input treated as data, not instruction>"
+      isolation: "<student: how the data is bounded>"
+roles:
+  coordinator: "<student: completeness and one-receiver routing only>"
+  implementation: "<student: approved reversible work only>"
+  reviewer: "<student: independent review, no author edits>"
+  qa_sdet: "<student: reproducible test evidence only>"
+  risk_reviewer: "<student: recommendation or STOP, never final approval>"
+  named_human_owner: "<student: only approve or reject intended action>"
+  separately_named_authorized_executor: "<student: only execute explicit approval>"
+workflow:
+  trigger: "<student: start event>"
+  normal_path: "<student: ordered bounded steps>"
+  failure_paths: "<student: stale context, excess permission, weak evidence>"
+gates:
+  freshness: "<student: observable pass or STOP condition>"
+  permission: "<student: observable least-privilege condition>"
+  evidence: "<student: command, output, path and reviewer condition>"
+  approval: "<student: intended-action approval condition only>"
+evidence:
+  normal_run: "<student: exact command and output path>"
+  stale_context_run: "<student: STOP, owner, receiver, resume>"
+  excess_permission_run: "<student: STOP, forbidden action, resume>"
+  weak_evidence_run: "<student: STOP, correction and re-run>"
+risks:
+  required_remediation: "<student: current failed core gate, owner and re-run>"
+  future_extensions: "<student: optional work after core gates pass>"
