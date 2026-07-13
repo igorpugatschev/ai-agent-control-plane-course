@@ -83,6 +83,45 @@
 - названия моделей, доступность функций, лимиты, цены и политики нужно перепроверять на дату обновления урока;
 - OpenAI-специфичные механики нужно отделять от общих принципов agent control plane.
 
+### NIST AI RMF Core
+
+- Роль: vendor-neutral Tier 1 framework для управления AI risks.
+- Scope: функции Govern, Map, Measure и Manage; распределение ответственности,
+  оценка и управление рисками в Module 6.
+- Canonical URL: [NIST AI RMF Core](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- Core задает framework outcomes, а локальные role contracts и safety gates
+  определяют учебный workflow и permissions.
+
+### OWASP LLM01:2025 Prompt Injection
+
+- Роль: Tier 1 security guidance для угрозы prompt injection.
+- Scope: direct и indirect prompt injection, untrusted inputs, least privilege
+  и boundaries в Module 6.
+- Canonical URL: [OWASP LLM01:2025 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- OWASP описывает риск и controls; решение о named human owner и local STOP
+  остается частью учебного control plane.
+
+### OpenTelemetry GenAI semantic conventions
+
+- Роль: Tier 1 specification для trace conventions и attributes GenAI telemetry.
+- Scope: trace conventions и attributes для Module 6 trace record; не redaction
+  policy и не разрешения на запись payload.
+- Canonical URL: [OpenTelemetry GenAI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai)
+- Checked: 2026-07-13.
+
+Ограничения:
+
+- Redaction, data minimization и protected evidence определяет локальная course
+  safety policy, а не semantic conventions.
+
 ### Anthropic Claude Platform
 
 Ссылки:

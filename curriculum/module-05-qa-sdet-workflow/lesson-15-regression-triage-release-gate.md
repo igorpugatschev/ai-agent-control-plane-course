@@ -8,7 +8,7 @@
 
 Не каждый failed run - продуктовый дефект, и не каждый green run - основание для выпуска. Defect fixture может быть documentary historical case: без pinned defective revision или defect fixture он описывает прошлое утверждение, а не запускаемую текущую регрессию. Flaky log показывает разные результаты одной команды при неизмененных inputs и требует расследования, а не автоматического retry. Смешение этих состояний приводит либо к игнорированию регрессии, либо к ложной блокировке релиза.
 
-Release gate соединяет traceability, test evidence, known defects, instability, риск и назначенного decision owner. QA/SDET дает quality evidence; coordinator проверяет полноту и routing; risk reviewer принимает отдельное approval/reject/STOP для высокорискового выпуска, а human owner остается владельцем final product acceptance. Без матрицы нельзя узнать, какие условия покрыты, поэтому выпуск должен остановиться.
+Release gate соединяет traceability, test evidence, known defects, instability, риск и назначенного decision owner. QA/SDET дает quality evidence; coordinator проверяет полноту и routing; risk reviewer выполняет risk analysis и ведет approval-gate process, возвращая recommendation или STOP для высокорискового выпуска. Final irreversible-action approval дает только named human owner. Без матрицы нельзя узнать, какие условия покрыты, поэтому выпуск должен остановиться.
 
 ## Теория
 
@@ -59,7 +59,7 @@ Severity описывает влияние при наличии дефекта:
 ## Decision
 - STOP: release traceability absent, flaky impact unclassified, or risk/rollback/approver missing.
 - Candidate go: QA/SDET evidence complete -> coordinator completeness check ->
-  risk reviewer decision for release risk -> human owner final acceptance.
+  risk analysis -> recommendation or STOP -> named human owner final approval.
 ```
 
 ### Подготовленный ответ агента без API-ключа

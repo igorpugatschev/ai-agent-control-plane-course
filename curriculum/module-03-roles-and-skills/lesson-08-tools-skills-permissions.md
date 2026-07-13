@@ -68,11 +68,11 @@ mkdir -p artifacts/module-03
 printf '# Матрица skills и permissions\n' > artifacts/module-03/skill-and-permission-matrix.md
 ```
 
-1. Используйте `templates/skill-contract.md` для skills `подготовка реализации`, `независимый review`, `локальная QA-проверка`, `risk approval` и `маршрутизация handoff`.
+1. Используйте `templates/skill-contract.md` для skills `подготовка реализации`, `независимый review`, `локальная QA-проверка`, `risk analysis и approval-gate process` и `маршрутизация handoff`.
 2. У каждого skill запишите input и output schema. Включите `scope`, `sources`, `evidence`, `stop_status`, `receiver`; для проверки добавьте command и observed result.
 3. Создайте таблицу с колонками `Роль`, `Skill`, `Tool`, `Разрешенное действие`, `Scope`, `Evidence`, `Запрет`.
 4. Внесите `read/search`, editor, `git diff`, `pytest`, `git commit`, `git push`, удаление файла. Отделите capability от permission.
-5. Зафиксируйте: reviewer не использует editor для author files; implementation не использует approve; risk reviewer решает approval, но не выполняет необратимое действие сам по умолчанию.
+5. Зафиксируйте: reviewer не использует editor для author files; implementation не использует approve; risk reviewer выполняет analysis и возвращает recommendation или STOP, но не выполняет необратимое действие и не дает final approval.
 6. Добавьте STOP для отсутствующего input schema и correction route: receiver и поле, которое должен добавить sender.
 7. В конце кратко сравните один provider-specific пример с vendor-neutral contract, не вводя обязательный SDK или ключ.
 
@@ -85,7 +85,7 @@ vendor-neutral определения tool, skill и permission, затем та
 роль -> skill -> tool -> разрешенное действие -> scope -> evidence -> запрет.
 У каждого skill задай input/output schema с scope, sources, evidence,
 stop_status и receiver. Ограничения: reviewer не редактирует, implementation
-не self-approves, risk reviewer владеет approval необратимого действия.
+не self-approves, risk reviewer владеет risk analysis и approval-gate process.
 При отсутствующем schema верни structured STOP и handoff coordinator-у.
 ```
 
@@ -113,6 +113,7 @@ grep -qiE 'risk reviewer.*approval|approval.*risk reviewer' artifacts/module-03/
 - матрица показывает scope и evidence, а не только tool name;
 - `git push` и удаление имеют явный запрет без approval;
 - отсутствие обязательного поля приводит к STOP и receiver;
+- Final irreversible-action approval дает только named human owner.
 - provider-specific пример вторичен и не нужен для no-key маршрута.
 
 Локальный маршрут исправления: если нет поля schema, добавьте его в skill contract и повторите проверку. Если permission звучит как tool, перепишите строку глаголом и scope: не «pytest», а «запустить указанную локальную команду для согласованных файлов». Если provider пример стал обязательным, вынесите его в необязательную заметку и восстановите vendor-neutral procedure.

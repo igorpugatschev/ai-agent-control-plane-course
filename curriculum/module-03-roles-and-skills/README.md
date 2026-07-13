@@ -13,7 +13,9 @@
 
 Используйте накопленные `artifacts/module-01/control-plane-blueprint.md` и артефакты Module 2, а затем заполняйте локальные Markdown-файлы по шаблонам `templates/agent-role.md`, `templates/skill-contract.md` и `templates/handoff.md`. Обязательный путь не требует API-ключа: уроки содержат подготовленные ответы и локальные проверки. Live prompt разрешен только как черновик; он не создает permission, approval или evidence.
 
-Контракт роли отвечает на вопрос «кто отвечает за результат», skill - «как повторяемо выполнить работу», а tool - «какое отдельное действие технически возможно». Доступность инструмента не является разрешением. Coordinator маршрутизирует работу по contract и evidence, reviewer не редактирует работу автора, implementation не принимает собственный результат, а risk reviewer принимает решение об одобрении необратимого действия.
+Контракт роли отвечает на вопрос «кто отвечает за результат», skill - «как повторяемо выполнить работу», а tool - «какое отдельное действие технически возможно». Доступность инструмента не является разрешением. Coordinator маршрутизирует работу по contract и evidence, reviewer не редактирует работу автора, implementation не принимает собственный результат, а risk reviewer выполняет risk analysis и ведет approval-gate process.
+
+Final irreversible-action approval дает только named human owner.
 
 ## Готовность модуля
 

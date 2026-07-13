@@ -20,7 +20,9 @@
 
 ### Разделение конфликтующих полномочий
 
-Один человек или runtime может последовательно исполнять несколько ролей, но не должен совмещать конфликтующие решения в одном шаге. Implementation готовит изменение и evidence, но не утверждает собственный результат. Reviewer читает и запускает проверки, но не редактирует файл implementation: иначе finding и исправление смешиваются. Risk reviewer владеет approval необратимых действий, например удаления данных, публикации или отправки в защищенную ветку; coordinator только доставляет ему пакет.
+Один человек или runtime может последовательно исполнять несколько ролей, но не должен совмещать конфликтующие решения в одном шаге. Implementation готовит изменение и evidence, но не утверждает собственный результат. Reviewer читает и запускает проверки, но не редактирует файл implementation: иначе finding и исправление смешиваются. Risk reviewer владеет risk analysis и approval-gate process для удаления данных, публикации или отправки в защищенную ветку; coordinator доставляет ему package, а recommendation или STOP - named human owner.
+
+Final irreversible-action approval дает только named human owner.
 
 ### Least privilege и STOP
 
@@ -68,7 +70,7 @@ printf '# Контракты ролей\n' > artifacts/module-03/role-contracts.
 2. У каждого contract заполните восемь полей: `Цель`, `Принятые входы`, `Обязательный выход`, `Разрешенные tools`, `Запрещенные действия`, `Stop conditions`, `Критерии качества`, `Получатель handoff`.
 3. Для implementation разрешите лишь согласованное редактирование и локальные тесты; запретите self-approval, удаление, deploy и push без решения.
 4. Для reviewer разрешите чтение, `git diff` и повторный запуск проверок; запретите редактирование author files.
-5. Для risk reviewer укажите владельца decision об approval необратимого действия. Его output - `approve`, `reject` или `STOP`, а не выполнение действия.
+5. Для risk reviewer укажите владельца risk analysis и approval-gate process. Его output - documented `recommendation` или `STOP`, а не выполнение действия или final approval.
 6. У каждого STOP назовите evidence и receiver; не пишите «остановиться при проблеме» без наблюдаемого условия.
 
 ### Необязательный prompt для живого агента
@@ -79,7 +81,7 @@ printf '# Контракты ролей\n' > artifacts/module-03/role-contracts.
 У каждой роли верни: Цель, Принятые входы, Обязательный выход, Разрешенные tools,
 Запрещенные действия, Stop conditions, Критерии качества, Получатель handoff.
 Сохрани разделение: reviewer не редактирует автора, implementation не утверждает
-себя, risk reviewer принимает approval необратимых действий. При нехватке входа
+себя, risk reviewer выполняет analysis и возвращает recommendation или STOP. При нехватке входа
 или permission верни STOP и receiver.
 ```
 
@@ -107,7 +109,8 @@ grep -qiE 'risk reviewer.*необратим|необратим.*risk reviewer' 
 - output reviewer-а отличен от output implementation;
 - reviewer не имеет write permission на работу автора;
 - implementation не имеет self-approval;
-- только risk reviewer владеет approval необратимого действия;
+- risk reviewer владеет risk analysis и approval-gate process, а named human
+  owner - final irreversible-action approval;
 - каждый STOP указывает факт, risk, безопасный шаг и handoff.
 
 Локальный маршрут исправления: если команда не находит поле, добавьте его к отсутствующему contract, не меняя другие роли. Если две роли могут принять один конфликтующий результат, оставьте решение у независимого reviewer или risk reviewer. Если STOP не дает продолжения, добавьте evidence, receiver и resume condition в `role-contracts.md`, затем повторите команду.
@@ -117,7 +120,9 @@ grep -qiE 'risk reviewer.*необратим|необратим.*risk reviewer' 
 - **Роль названа, но не ограничена.** Исправление: добавьте входы, output и конкретные запреты.
 - **Implementation сам поставил `approve`.** Исправление: замените на evidence и handoff reviewer-у.
 - **Reviewer исправил найденный дефект.** Исправление: верните finding implementation; reviewer сохраняет независимость.
-- **Risk reviewer получил право сделать push.** Исправление: оставьте ему decision об approval, а действие выполняйте отдельной разрешенной ролью после approval.
+- **Risk reviewer получил право сделать push или final approval.** Исправление:
+  оставьте ему analysis и recommendation/STOP, а final approval дает named human
+  owner; действие выполняйте отдельной разрешенной ролью после approval.
 - **STOP скрывает риск.** Исправление: запишите blocked action и возможный ущерб.
 
 ## Контрольные вопросы

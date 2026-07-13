@@ -26,8 +26,13 @@
 
 ## Критерии качества
 - Receiver и одно следующее действие однозначны.
-- Routing не смешивает implementation, независимый review, risk approval и final acceptance.
+- Routing не смешивает implementation, независимый review, risk analysis,
+  approval-gate process и final irreversible-action approval.
 - Handoff позволяет следующей роли действовать без догадки и сохраняет failure owner.
 
 ## Получатель handoff
-- `implementation` для correction, `reviewer` для review, `qa-sdet` для test triage, `risk-reviewer` для approval decision или human owner после review.
+- `implementation` для correction, `reviewer` для review, `qa-sdet` для test
+  triage, `risk-reviewer` для risk analysis и recommendation/STOP, named human
+  owner для final irreversible-action approval.
+
+Final irreversible-action approval дает только named human owner.

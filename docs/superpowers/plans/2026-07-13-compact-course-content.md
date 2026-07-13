@@ -548,7 +548,7 @@ Explain role contracts, least privilege, tools versus skills, permission boundar
 
 - [ ] **Step 2: Create reusable example roles**
 
-Every role file must specify goal, accepted inputs, required output, allowed tools, forbidden actions, stop conditions, quality criteria and handoff target. The reviewer cannot edit implementation; the implementation role cannot approve its own result; the risk reviewer owns irreversible-action approval.
+Every role file must specify goal, accepted inputs, required output, allowed tools, forbidden actions, stop conditions, quality criteria and handoff target. The reviewer cannot edit implementation; the implementation role cannot approve its own result; the risk reviewer owns risk analysis and the approval-gate process, while only the named human owner grants final irreversible-action approval.
 
 - [ ] **Step 3: Create checkpoint 3 and verify**
 
@@ -674,6 +674,22 @@ Expected: no validation errors.
 git add curriculum/module-06-safety-and-observability
 git commit -m "docs: add safety and observability module"
 ```
+
+#### Task 9 safety-review report
+
+- Authority: risk reviewer owns risk analysis and the approval-gate process,
+  returning a recommendation or `STOP`; only the named human owner grants final
+  irreversible-action approval.
+- Sources: added Tier 1 catalog entries for NIST AI RMF Core, OWASP LLM01:2025
+  Prompt Injection and OpenTelemetry GenAI semantic conventions, all checked
+  `2026-07-13`; the OpenTelemetry source is limited to trace conventions and
+  attributes, while redaction remains local course safety policy.
+- Regression guard: `tests/test_course_assets.py` checks the authority contract,
+  canonical GenAI URL and Tier 1 catalog coverage.
+- Verification: Module 3 and Module 6 validators, root pytest and the training
+  stand pass. The root course validator remains blocked by the pre-Task-10
+  baseline of six modules and 18 lessons, so Module 7 is deliberately out of
+  scope for this Task 9 fix.
 
 ---
 

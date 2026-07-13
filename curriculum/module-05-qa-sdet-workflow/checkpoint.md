@@ -42,7 +42,7 @@ templates/handoff.md
 1. В `traceability-matrix.md` свяжите минимум шесть requirements/API conditions с named tests или schema review, риском и observed evidence. Обязательно разделите Python service checks и HTTP claims.
 2. В `test-agent-workflow.md` опишите API schema review, stable command, evidence fields, failure routing, optional Playwright branch и `UI check: not applicable` для текущего стенда.
 3. В `triage-and-release-gate.md` классифицируйте exact fixtures ниже, выберите regression scope и подготовьте release gate. Выпуск без traceability matrix обязан завершиться `STOP`.
-4. Передайте QA/SDET package coordinator-у. QA/SDET не исправляет стенд, не выдает final acceptance и не делает release/deploy; risk reviewer принимает только документированное decision об approval/reject/STOP после complete risk package.
+4. Передайте QA/SDET package coordinator-у. QA/SDET не исправляет стенд, не выдает final acceptance и не делает release/deploy; risk reviewer выполняет risk analysis и возвращает documented recommendation или STOP после complete risk package.
 
 ## Exact fixture classification
 
@@ -72,7 +72,8 @@ rollback, human owner или documented approval route.
 Receiver: coordinator.
 Следующее действие: запросить у QA/SDET три Module 5 артефакта и actual test
 report; после completeness check coordinator направляет risk package risk
-reviewer-у, а final product acceptance остается human owner.
+reviewer-у для analysis и recommendation/STOP, а final irreversible-action
+approval дает named human owner.
 Resume condition: complete traceability, deterministic evidence, defect/flaky
 decision, risk/rollback и named owners.
 ```
@@ -112,7 +113,7 @@ PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-ta
 git diff --check
 ```
 
-Проведите два walkthrough. Нормальный путь: full traceability и deterministic evidence -> coordinator completeness check -> risk reviewer decision при release risk -> human owner final acceptance. Failure path: отсутствует matrix или flaky disposition -> `STOP -> coordinator -> QA/SDET` для bounded evidence package; не выполняйте release.
+Проведите два walkthrough. Нормальный путь: full traceability и deterministic evidence -> coordinator completeness check -> risk analysis -> recommendation or STOP -> named human owner final approval. Failure path: отсутствует matrix или flaky disposition -> `STOP -> coordinator -> QA/SDET` для bounded evidence package; не выполняйте release.
 
 ## Оценивание
 
@@ -133,7 +134,7 @@ git diff --check
 - **Fixture confusion:** documentary historical case без pinned artifact назван reproducible/current defect, либо flaky назван confirmed root cause.
 - **Unbounded flaky retry:** нестабильность скрыта повторным green run без сохраненных outcomes.
 - **Layer confusion:** Python unit test выдан за HTTP endpoint или обязательный UI check выдуман без UI scope.
-- **Role violation:** QA/SDET self-approves release, либо risk reviewer/deployer выполняет действие вместо documented decision.
+- **Role violation:** QA/SDET self-approves release, risk reviewer дает final approval или reviewer/deployer выполняет действие вместо documented recommendation/final approval.
 - **Missing deterministic evidence:** нет exact command, environment/exit result или named receiver.
 
 ## Локальный маршрут исправления
@@ -142,7 +143,9 @@ git diff --check
 - fixture confusion -> для defect-report запишите documentary historical case, `not reproduced`, missing pinned revision/fixture и STOP/request for pinned artifact; сохраните defect steps или все flaky outcomes, root cause оставьте `unknown`;
 - unbounded retry -> внесите неизмененные command/source, каждый run и isolation next action в `triage-and-release-gate.md`;
 - layer confusion -> перенесите HTTP claim в schema review, UI в optional branch `not applicable`, пока нет approved scope;
-- role violation -> передайте QA/SDET report coordinator-у, approval - risk reviewer-у, final acceptance - human owner;
+- role violation -> передайте QA/SDET report coordinator-у, risk analysis/recommendation или STOP - risk reviewer-у, final irreversible-action approval - named human owner;
+
+Final irreversible-action approval дает только named human owner.
 - failed check -> сохраните output, failed node, source/diff state и failure owner, затем передайте coordinator-у.
 
 ## Результат checkpoint
