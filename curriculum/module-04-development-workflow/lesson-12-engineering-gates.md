@@ -45,7 +45,7 @@ Reviewer применяет `templates/review-gate.md`, читает change brie
 
 ## Evidence автора
 - `git diff --check` -> exit 0.
-- `PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q` -> `14 passed`.
+- `PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q` -> expected learner evidence after implementing priority and adding three tests: `14 passed`; this is not the observed baseline. Current baseline: `11 passed`.
 
 ## Проверки reviewer-а
 - Повторить command; сверить diff, API schema и документы с change brief.
