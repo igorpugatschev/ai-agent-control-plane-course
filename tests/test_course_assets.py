@@ -14,6 +14,9 @@ TEMPLATES = (
     "final-report.md",
 )
 
+# Compatibility name for consumers of the task brief's asset contract.
+REQUIRED_ASSETS = TEMPLATES
+
 TERMS = (
     "LLM",
     "prompt",
@@ -33,6 +36,10 @@ TERMS = (
     "tracing",
     "prompt injection",
 )
+
+
+def test_required_assets_alias_matches_templates():
+    assert REQUIRED_ASSETS == TEMPLATES
 
 
 def test_all_templates_exist_and_have_acceptance_criteria():

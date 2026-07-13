@@ -50,12 +50,23 @@
 - Подтвердить, что release notes соответствуют diff.
 ## Scope
 - Включено: Markdown-документы; исключено: код продукта.
+## Источники контекста
+- `git diff --name-only` и `docs/source-policy.md`.
 ## Роли
 - Implementer: обновляет текст; Reviewer: сверяет diff.
+## Workflow
+1. Implementer правит документы.
+2. Reviewer принимает evidence.
+## Инструменты
+- `pytest`: проверяет ассеты.
 ## Gates
 - `pytest` проходит до review.
+## Approvals
+- Reviewer утверждает готовность к commit.
 ## Evidence
 - SHA, вывод теста и список файлов.
+## Риски
+- Неполный пример -> сверка с полями шаблона.
 ```
 
 ## Критерии готовности

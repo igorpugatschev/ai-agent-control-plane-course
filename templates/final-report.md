@@ -39,12 +39,16 @@
 - completed.
 ## Результат
 - Созданы десять шаблонов и глоссарий.
+## Измененные артефакты
+- `glossary/terms.md` и `templates/`.
 ## Evidence
 - `pytest tests/test_course_assets.py -q`: 2 passed.
 ## Commit
 - `abc123 docs: add course glossary and artifact templates`.
 ## Concerns
 - Нет.
+## Следующий владелец
+- Не требуется.
 ```
 
 ## Критерии готовности
