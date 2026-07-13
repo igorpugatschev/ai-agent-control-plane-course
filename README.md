@@ -80,6 +80,7 @@ AI Agent Control Plane Engineer проектирует систему вокру
 │   ├── source-catalog.md
 │   └── repository-structure.md
 ├── curriculum/
+│   ├── README.md
 │   └── roadmap.md
 ├── agents/
 │   └── README.md
