@@ -38,6 +38,10 @@
 
 ## Привилегированная ветка
 
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
 - Полный порядок: risk reviewer analysis/recommendation or STOP ->
   named human owner approve/reject -> separately named authorized executor ->
   execution evidence.

@@ -31,6 +31,15 @@
 - Recommendation или STOP отделены от исполнения, содержат conditions и receiver.
 - Reject/STOP не маскируются как завершение задачи.
 
+## Нормативная privileged chain
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- При `STOP` или reject execution не начинается; risk reviewer не становится
+  approver-ом или executor-ом.
+
 ## Получатель handoff
 - `coordinator`, который передает recommendation named human owner для final
   irreversible-action approval или STOP владельцу недостающего evidence.

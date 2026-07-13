@@ -36,6 +36,15 @@ templates/handoff.md
 
 ## Задание
 
+Нормативный порядок privileged branch:
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- Prepared STOP завершается before execution; approve без executor/evidence не
+  является завершенным walkthrough.
+
 Обновите только три артефакта Module 3.
 
 1. В `role-contracts.md` задайте пять roles с полями: цель, принятые входы, обязательный выход, разрешенные tools, запрещенные действия, stop conditions, критерии качества, получатель handoff.
@@ -94,11 +103,20 @@ grep -qiE 'не удал|запрещ.*удален|STOP' artifacts/module-03/co
 grep -qiE 'reviewer.*не.*редакт|не.*редакт.*reviewer' artifacts/module-03/role-contracts.md
 grep -qiE 'implementation.*не.*утверж|не.*утверж.*implementation' artifacts/module-03/role-contracts.md
 grep -qiE 'risk reviewer.*approval|approval.*risk reviewer' artifacts/module-03/role-contracts.md
+for term in "risk analysis" recommendation STOP "approve/reject" \
+  "authorized executor" "approved action" "execution evidence" identity \
+  "approved scope" "operation id" "exit/output" "resulting state"; do
+  grep -R -qi "$term" artifacts/module-03 || exit 1
+done
 PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
 # Ожидаемое наблюдение: 11 passed; это evidence QA, а не approval.
 ```
 
-Проведите walkthrough запроса. Он пройден, если implementation не совершает запрещенное действие, coordinator не закрывает задачу, reviewer не правит diff, risk reviewer получает единственный package для risk analysis, а final irreversible-action approval не появляется до named human owner.
+Проведите walkthrough запроса. Он пройден, если implementation не совершает
+запрещенное действие, coordinator не закрывает задачу, reviewer не правит diff,
+risk reviewer возвращает только recommendation/STOP, named human owner только
+approve/reject, а отдельно named executor либо не назначен из-за STOP, либо
+выполнил approved action и вернул все поля execution evidence.
 
 ## Оценивание
 
@@ -110,7 +128,7 @@ PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-ta
 | Tool, skill, permission | Понятия смешаны | Есть definitions без scope | Матрица связывает role, procedure, tool, action, scope и evidence |
 | STOP implementation | Request выполнен/задача закрыта | STOP без risk/receiver | Заблокированы удаление, push и self-approval; есть evidence и handoff |
 | Routing и review | Coordinator/reviewer нарушает границу | Нет failure owner | Package идет coordinator -> risk reviewer, review независим |
-| Approval и приемка | Approval выдал implementation/reviewer | Нет human owner/conditions | Risk reviewer дает recommendation/STOP, final irreversible-action approval у named human owner |
+| Approval и приемка | Approval/execute выдал implementation/reviewer | Нет owner/executor/evidence | Risk reviewer дает recommendation/STOP; owner approve/reject; отдельный executor выполняет approved action и возвращает полное execution evidence либо STOP before execution |
 
 Для зачета нужно не менее 8 из 10 и отсутствие критических дефектов.
 
@@ -122,6 +140,9 @@ Checkpoint не пройден независимо от баллов, если 
 - **Reviewer edits author work:** reviewer получил write action на author diff вместо findings/handoff.
 - **Missing risk owner:** нет отдельного risk reviewer, владеющего risk analysis и approval-gate process.
 - **Unsafe routing:** coordinator сам выдает approval, выполняет действие или направляет risk request не тому receiver.
+- **Incomplete privileged chain:** owner/reviewer исполняет action, executor не
+  назван отдельно либо execution evidence не содержит identity, approved scope,
+  operation id, exit/output и resulting state.
 - **Unstructured STOP:** нет blocked action, evidence, risk, receiver либо resume condition.
 - **Missing schema:** skill выполняется без входов или не возвращает evidence/receiver.
 - **External-reading dependency:** обязательное объяснение вынесено во внешний источник.

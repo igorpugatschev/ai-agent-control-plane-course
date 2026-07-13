@@ -12,6 +12,14 @@
 
 ## Теория
 
+### Нормативная privileged chain
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- Недостаточное permission/evidence приводит к `STOP before execution`.
+
 ### Три разных уровня
 
 **Tool** выполняет отдельное техническое действие: `git diff` показывает изменение, `pytest` запускает тест, редактор пишет файл. Tool сам не знает цель, порядок или владельца решения.
@@ -55,6 +63,7 @@ Tools не запускаются, потому что нельзя провер
 Evidence: отсутствующее поле changed_files в handoff.
 Handoff: coordinator; запросить у implementation список файлов и diff.
 Запрещено: угадывать список файлов, редактировать сервис или ставить approve.
+Privileged result: STOP before execution; tool call и executor отсутствуют.
 ```
 
 STOP сохраняет достоверность: `pytest` может быть зеленым, но без scope QA/SDET не докажет, что проверял требуемое изменение.
@@ -104,6 +113,11 @@ done
 grep -qiE 'reviewer.*не.*редакт|не.*редакт.*reviewer' artifacts/module-03/skill-and-permission-matrix.md
 grep -qiE 'implementation.*не.*утверж|не.*утверж.*implementation' artifacts/module-03/skill-and-permission-matrix.md
 grep -qiE 'risk reviewer.*approval|approval.*risk reviewer' artifacts/module-03/skill-and-permission-matrix.md
+for term in "risk analysis" recommendation STOP "approve/reject" \
+  "authorized executor" "approved action" "execution evidence" identity \
+  "approved scope" "operation id" "exit/output" "resulting state"; do
+  grep -qi "$term" artifacts/module-03/skill-and-permission-matrix.md || exit 1
+done
 ```
 
 Наблюдаемые критерии приемки:

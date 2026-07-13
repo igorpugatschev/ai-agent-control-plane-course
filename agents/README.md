@@ -2,6 +2,14 @@
 
 Эта директория содержит исполнимые учебные контракты Module 3. Агент здесь не «отдельная нейросеть», а инженерный исполнитель с явной целью, входами, output, permissions, запретами, stop conditions, quality criteria и handoff target.
 
+## Нормативная privileged chain
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- `STOP`/reject завершает ветку до execution; approve не является execution evidence.
+
 ## Ролевые контракты
 
 - [Coordinator](coordinator.md) - проверяет полноту пакета и маршрутизирует следующего владельца; не пишет код и не выдает approval.

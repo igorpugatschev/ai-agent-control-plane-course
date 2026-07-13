@@ -59,7 +59,7 @@ python3 -c "import json; print(json.load(open('control-plane.yaml', encoding='ut
 Ожидаемый вывод двух contract commands:
 
 ```text
-Reference control plane check: PASS
+Reference contract check: PASS
 1
 ```
 

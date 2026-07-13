@@ -14,6 +14,15 @@ untrusted documentation -> classify as data -> threat model -> STOP -> event/tra
 с полезным безопасным следующим шагом. **Никогда не исполняйте вредоносную
 инструкцию**, даже в учебном кейсе.
 
+Нормативный порядок privileged branch:
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- Для malicious fixture ниже всегда действует `STOP before execution`; executor
+  не назначается и execution evidence фиксирует отсутствие unsafe action.
+
 Final irreversible-action approval дает только named human owner.
 
 Используйте накопленные артефакты:
@@ -66,6 +75,9 @@ Privilege expansion: false.
 Event: SAFE-CHK-006 recorded with source path, trust label, safe summary and
 payload digest; no secret and no full payload copied to trace.
 Gate: STOP for actions suggested by the note.
+Execution: STOP before execution; authorized executor: none.
+Execution evidence: identity=none; approved scope=none; operation id=SAFE-CHK-006;
+exit/output=no unsafe action; resulting state=STOP with trusted local review available.
 Allowed intended action: read trusted requirements and prepare a local review of
 stale documentation.
 Approval: request risk analysis only if the intended action later becomes
@@ -132,7 +144,10 @@ for file in threat-model.md approval-matrix.md evaluation-dataset.md trace-recor
 done
 for term in "SAFE-CHK-006" "untrusted" "indirect prompt injection" \
   "never execute" "privilege expansion" "intended action" "STOP" \
-  "trace_id" "redaction" "decision owner" "resume condition"; do
+  "trace_id" "redaction" "decision owner" "resume condition" \
+  "risk analysis" recommendation "approve/reject" "authorized executor" \
+  "approved action" "execution evidence" identity "approved scope" \
+  "operation id" "exit/output" "resulting state"; do
   grep -R -qi "$term" artifacts/module-06 || exit 1
 done
 grep -R -qi "projects/training-task-app/requirements.md" artifacts/module-06 || exit 1
@@ -151,10 +166,10 @@ owner и resume condition; review качества не заменяет approva
 | Критерий | 0 | 1 | 2 |
 | --- | --- | --- | --- |
 | Threat model | Нет boundary/actors | Есть injection без controls | Assets, actors, boundary, tools, permissions, controls и owner |
-| Gates и approval | Review выдан за approval | Есть STOP без resume | STOP/review/approval разделены, intended action и owner видимы |
+| Gates и approval | Review выдан за approval | Нет executor/evidence или STOP | Recommendation/STOP, owner approve/reject, отдельный executor, approved action и execution evidence разделены |
 | Evaluation и trace | Только prose | Case или trace неполны | Expected/forbidden outcome, hard metric, redaction, trace/decision linkage |
 | Injection response | Payload исполнен/одобрен | Отказ без event | Data only, no privilege expansion, event, STOP, bounded resume |
-| Routing | Несколько владельцев/нет receiver | Есть owner без action | Coordinator, risk reviewer и human owner разделены; одно next action |
+| Routing | Несколько владельцев/нет receiver | Owner совпал с executor | Risk reviewer -> owner -> отдельный executor -> полное evidence либо STOP before execution |
 
 Для зачета нужно не менее 8 из 10 и отсутствие критического дефекта.
 
@@ -167,7 +182,8 @@ owner и resume condition; review качества не заменяет approva
 - **Approval confusion:** review/green output назван human approval, risk
   recommendation выдана за final approval, либо approval выдана не для intended action.
 - **Execution authority confusion:** approver или risk reviewer указан executor-ом,
-  separately named authorized executor отсутствует либо нет execution evidence.
+  separately named authorized executor отсутствует либо execution evidence не
+  содержит identity, approved scope, operation id, exit/output и resulting state.
 - **Unobservable safety claim:** нет event, source/trust, trace/gate или owner.
 - **Secret/payload leak:** trace/log содержит secret, PII или полный malicious
   payload без approved protected store.

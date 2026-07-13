@@ -12,6 +12,15 @@ Release gate соединяет traceability, test evidence, known defects, inst
 
 ## Теория
 
+### Нормативная privileged chain
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- Неполное release evidence означает `STOP before execution`; green test не
+  позволяет пропустить owner, executor или execution evidence.
+
 ### Reproduction и regression scope
 
 Defect report воспроизводим, когда заданы pinned defective revision или fixture, условия, шаги, expected и actual result, минимальный check и output этого запуска. `projects/training-task-app/scenarios/defect-report.md` - documentary historical case: он описывает, как дефектная версия считала `done`-задачу active и отклоняла повторное название, но не содержит pinned defective revision или исполняемого defect fixture. Current stable suite уже содержит guard `test_title_can_be_reused_after_task_is_done` и сейчас дает `11 passed`; это evidence `not reproduced` в current checkout, а не доказательство historical defect. До получения pinned artifact evidence package фиксирует `not reproduced`, missing revision/fixture и `STOP`; студент не меняет код или tests, чтобы искусственно создать failure. Сам принцип defect reproduction сохраняется: после получения pinned artifact те же минимальные steps и check можно выполнить против него.
@@ -74,6 +83,7 @@ flaky log показывает instability и не подтверждает root
 Coordinator запрашивает bounded isolation triage. Risk reviewer не получает
 approval request до evidence, impact, rollback и human owner. Нельзя заменить
 этот STOP повторным green run.
+Execution: STOP before execution; authorized executor не назначен.
 ```
 
 Это prepared verdict. Текущий локальный run нужно выполнить и зафиксировать отдельно; fixture не является live failure этого стенда.
@@ -110,7 +120,8 @@ test -f artifacts/module-05/triage-and-release-gate.md
 for term in "defect-report.md" "flaky-run.log" "documentary historical case" \
   "not reproduced" "pinned" "flaky" "root cause unknown" "severity" \
   "priority" "regression scope" "traceability" "rollback" "risk reviewer" \
-  "human owner" "STOP"; do
+  "human owner" "authorized executor" "approved action" "execution evidence" \
+  identity "approved scope" "operation id" "exit/output" "resulting state" "STOP"; do
   grep -qi "$term" artifacts/module-05/triage-and-release-gate.md || exit 1
 done
 PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q

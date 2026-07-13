@@ -12,6 +12,15 @@
 
 ## Теория
 
+### Нормативная privileged chain
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- Coordinator при `STOP` не назначает executor-а; после approve маршрутизирует
+  approved action отдельному executor-у и возвращает evidence reviewer-у.
+
 ### Routing по состоянию, а не по названию агента
 
 Coordinator принимает только пакет с input schema: `task_id`, `goal`, `scope`, `sources`, `current_owner`, `status`, `evidence`, `risk`, `requested_next_action`. Он проверяет completeness и выбирает одну ветку:
@@ -65,6 +74,7 @@ Evidence: git diff согласованных файлов; exact pytest command
 Failure owner: risk reviewer владеет risk analysis и approval-gate process.
 Следующее действие: вернуть recommendation или STOP с conditions named human owner.
 Условие возобновления: final approval named human owner и назначенный исполнитель.
+Текущая ветка: STOP before execution; executor/evidence появятся только после approve.
 ```
 
 Пакет не говорит «все готово». Даже после recommendation coordinator направляет ее named human owner; только его final approval позволяет передать действие разрешенному исполнителю.
@@ -113,9 +123,19 @@ for branch in reviewer implementation "QA/SDET" "risk reviewer" "human owner"; d
 done
 grep -qi "scenarios/stale-documentation.md" artifacts/module-03/coordinator-handoff.md
 grep -qi "git push" artifacts/module-03/coordinator-handoff.md
+for term in "risk analysis" recommendation STOP "approve/reject" \
+  "authorized executor" "approved action" "execution evidence" identity \
+  "approved scope" "operation id" "exit/output" "resulting state"; do
+  grep -qi "$term" artifacts/module-03/coordinator-handoff.md || exit 1
+done
 ```
 
-Проведите walkthrough: пакет implementation с просьбой удалить stale-сценарий должен идти `STOP -> coordinator -> risk reviewer -> recommendation or STOP -> named human owner final approval -> assigned executor`; reviewer не выдает approval, implementation не завершает задачу.
+Проведите walkthrough: пакет implementation с просьбой удалить stale-сценарий
+должен идти `STOP -> coordinator -> risk reviewer -> recommendation or STOP ->
+named human owner approve/reject -> separately named authorized executor ->
+execution evidence`; reviewer не выдает approval, implementation не завершает
+задачу, а executor возвращает identity, approved scope, operation id,
+exit/output и resulting state.
 
 Наблюдаемые критерии приемки:
 

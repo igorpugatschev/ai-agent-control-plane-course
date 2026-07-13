@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+import pytest
+
 
 LINK_RE = re.compile(r"\[[^]]+\]\(([^)]+)\)")
 
@@ -95,7 +97,38 @@ SAFETY_AUTHORITY_PATHS = (
     Path("curriculum/module-06-safety-and-observability/checkpoint.md"),
 )
 
-FINAL_APPROVAL_POLICY = "Final irreversible-action approval дает только named human owner."
+SAFETY_AUTHORITY_CHAIN_MARKERS = (
+    "Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.",
+    "Named human owner только approve/reject intended irreversible action.",
+    "Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.",
+    "Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.",
+)
+SAFETY_PREPARED_STOP_SECTIONS = (
+    (
+        Path("curriculum/module-03-roles-and-skills/lesson-07-agent-role-contract.md"),
+        "### Подготовленный ответ агента без API-ключа",
+    ),
+    (
+        Path("curriculum/module-03-roles-and-skills/lesson-08-tools-skills-permissions.md"),
+        "### Подготовленный ответ агента без API-ключа",
+    ),
+    (
+        Path("curriculum/module-03-roles-and-skills/lesson-09-coordinator-handoff.md"),
+        "### Подготовленный ответ агента без API-ключа",
+    ),
+    (
+        Path("curriculum/module-05-qa-sdet-workflow/lesson-15-regression-triage-release-gate.md"),
+        "### Подготовленный ответ агента без API-ключа",
+    ),
+    (
+        Path("curriculum/module-05-qa-sdet-workflow/checkpoint.md"),
+        "## Prepared release input",
+    ),
+    (
+        Path("curriculum/module-06-safety-and-observability/checkpoint.md"),
+        "## Подготовленный malicious fixture response без API-ключа",
+    ),
+)
 CAPSTONE_CWD_DOC_PATHS = (
     Path("projects/capstone.md"),
     Path("curriculum/module-07-capstone/checkpoint.md"),
@@ -108,11 +141,6 @@ CAPSTONE_ROOT_COMMANDS = (
     "PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q",
     "git diff --check",
 )
-AUTHORIZED_EXECUTOR_POLICY = (
-    "A separately named authorized executor, distinct from the named human owner "
-    "and risk reviewer, executes the approved action."
-)
-HUMAN_OWNER_DECISION_POLICY = "The named human owner may only approve or reject the intended action."
 FORBIDDEN_OWNER_AS_EXECUTOR_PHRASE = "implementation или human owner через coordinator"
 PRIVILEGED_ACTION_ROW_PREFIX = "| Publish/deploy/delete/read secret |"
 EXPECTED_PRIVILEGED_MATRIX_CELLS = (
@@ -272,6 +300,12 @@ def extract_shell_block_after_heading(document: str, heading: str) -> str:
     return match.group("commands")
 
 
+def extract_until_next_level_two_heading(document: str, heading: str) -> str:
+    section = document.split(heading, 1)[1]
+    next_heading = re.search(r"^## ", section, re.MULTILINE)
+    return section if next_heading is None else section[: next_heading.start()]
+
+
 def has_complete_tier_1_record(catalog: str, url: str) -> bool:
     for section in re.split(r"(?=^### )", catalog, flags=re.MULTILINE):
         if f"]({url})" not in section:
@@ -338,6 +372,24 @@ def test_reference_control_plane_is_self_contained_and_rerunnable():
     assert result.returncode == 0, result.stderr
     assert result.stdout == "Reference control plane check: PASS\n"
     assert result.stderr == ""
+
+
+def test_reference_readme_expected_output_matches_manifest_commands_in_order():
+    reference = Path("projects/reference-control-plane")
+    contract = json.loads((reference / "control-plane.yaml").read_text(encoding="utf-8"))
+    readme = (reference / "README.md").read_text(encoding="utf-8")
+    match = re.search(
+        r"Ожидаемый вывод двух contract commands:\s*```text\n(?P<output>.*?)\n```",
+        readme,
+        re.DOTALL,
+    )
+
+    assert match, "README must contain the documented contract-command output block"
+    documented_output = [f"{line}\n" for line in match.group("output").splitlines()]
+    manifest_output = [
+        command["expected_stdout"] for command in contract["execution"]["commands"]
+    ]
+    assert documented_output == manifest_output
 
 
 def test_reference_checker_rejects_contract_mutations(tmp_path):
@@ -571,11 +623,71 @@ def test_glossary_defines_required_terms():
         assert term.lower() in text, term
 
 
-def test_safety_authority_and_trace_source_contracts_are_consistent():
-    for path in SAFETY_AUTHORITY_PATHS:
-        text = " ".join(path.read_text(encoding="utf-8").split())
-        assert FINAL_APPROVAL_POLICY in text, path
+@pytest.mark.parametrize("path", SAFETY_AUTHORITY_PATHS, ids=lambda path: str(path))
+def test_safety_authority_path_has_complete_ordered_privileged_chain(path):
+    text = " ".join(path.read_text(encoding="utf-8").split())
+    positions = []
+    for marker in SAFETY_AUTHORITY_CHAIN_MARKERS:
+        assert marker in text, (path, marker)
+        positions.append(text.index(marker))
+    assert positions == sorted(positions), path
 
+
+@pytest.mark.parametrize(
+    ("path", "heading"),
+    SAFETY_PREPARED_STOP_SECTIONS,
+    ids=lambda value: str(value),
+)
+def test_safety_prepared_examples_stop_before_execution(path, heading):
+    section = extract_until_next_level_two_heading(
+        path.read_text(encoding="utf-8"), heading
+    )
+    assert "STOP before execution" in section, path
+
+
+@pytest.mark.parametrize(
+    ("path", "heading"),
+    (
+        (
+            Path("curriculum/module-03-roles-and-skills/checkpoint.md"),
+            "## Самопроверка",
+        ),
+        (
+            Path("curriculum/module-05-qa-sdet-workflow/checkpoint.md"),
+            "## Самопроверка",
+        ),
+        (
+            Path("curriculum/module-06-safety-and-observability/checkpoint.md"),
+            "## Самопроверка",
+        ),
+        (
+            Path("curriculum/module-06-safety-and-observability/lesson-17-stop-review-approval-gates.md"),
+            "## Проверка результата",
+        ),
+    ),
+)
+def test_safety_self_checks_require_complete_execution_evidence(path, heading):
+    block = extract_shell_block_after_heading(
+        path.read_text(encoding="utf-8"), heading
+    ).lower()
+    for marker in (
+        "risk analysis",
+        "recommendation",
+        "stop",
+        "approve/reject",
+        "authorized executor",
+        "approved action",
+        "execution evidence",
+        "identity",
+        "approved scope",
+        "operation id",
+        "exit/output",
+        "resulting state",
+    ):
+        assert marker in block, (path, marker)
+
+
+def test_safety_roles_and_lesson17_matrix_enforce_separation():
     risk_reviewer = Path("agents/risk-reviewer.md").read_text(encoding="utf-8")
     assert "risk analysis" in risk_reviewer
     assert "approval-gate process" in risk_reviewer
@@ -584,8 +696,6 @@ def test_safety_authority_and_trace_source_contracts_are_consistent():
     lesson17 = Path(
         "curriculum/module-06-safety-and-observability/lesson-17-stop-review-approval-gates.md"
     ).read_text(encoding="utf-8")
-    assert AUTHORIZED_EXECUTOR_POLICY in lesson17
-    assert HUMAN_OWNER_DECISION_POLICY in lesson17
     assert FORBIDDEN_OWNER_AS_EXECUTOR_PHRASE not in lesson17
 
     privileged_row = next(
@@ -625,6 +735,8 @@ def test_safety_authority_and_trace_source_contracts_are_consistent():
         in implementation
     )
 
+
+def test_trace_source_catalog_contracts_are_consistent():
     trace_lesson = Path(
         "curriculum/module-06-safety-and-observability/lesson-18-evaluation-tracing-decision-log.md"
     ).read_text(encoding="utf-8")
@@ -639,33 +751,6 @@ def test_safety_authority_and_trace_source_contracts_are_consistent():
         assert f"- Scope: {expected['scope']}" in section
         assert f"]({expected['url']})" in section
         assert "- Checked: 2026-07-13." in section
-
-
-def test_privileged_authority_chain_returns_execution_evidence():
-    chain = (
-        "named human owner approve/reject -> separately named authorized executor "
-        "-> execution evidence"
-    )
-    for path in (
-        Path("agents/coordinator.md"),
-        Path("curriculum/module-05-qa-sdet-workflow/checkpoint.md"),
-        Path("assessments/checkpoints/module-05.md"),
-        Path("curriculum/module-06-safety-and-observability/checkpoint.md"),
-        Path("assessments/checkpoints/module-06.md"),
-    ):
-        text = " ".join(path.read_text(encoding="utf-8").split())
-        assert chain in text, path
-
-    coordinator = " ".join(
-        Path("agents/coordinator.md").read_text(encoding="utf-8").split()
-    )
-    assert "Risk reviewer только анализирует риск" in coordinator
-    assert "не дает final approval и не исполняет действие" in coordinator
-    assert "approver не может быть executor-ом" in coordinator
-
-    rubric = Path("assessments/final-rubric.md").read_text(encoding="utf-8")
-    assert "missing execution evidence" in rubric
-    assert "risk reviewer выполняет действие" in rubric
 
 
 def test_templates_require_quality_resume_and_receiver_fields():

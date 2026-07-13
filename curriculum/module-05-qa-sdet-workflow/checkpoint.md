@@ -48,6 +48,15 @@ templates/handoff.md
    -> separately named authorized executor -> execution evidence. Human owner
    и risk reviewer не могут быть executor-ом.
 
+## Нормативная privileged chain
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- Prepared release input ниже дает `STOP before execution`; только полный новый
+  package может пройти approve -> executor -> execution evidence.
+
 ## Exact fixture classification
 
 ### Defect fixture
@@ -81,6 +90,7 @@ approval дает named human owner.
 После approve coordinator назначает отдельно named authorized executor; тот
 возвращает execution evidence с identity, approved scope, command/operation id,
 exit/output и resulting state. При reject execution отсутствует.
+Prepared result: STOP before execution; этот input не доходит до executor-а.
 Resume condition: complete traceability, deterministic evidence, defect/flaky
 decision, risk/rollback и named owners.
 ```
@@ -113,7 +123,9 @@ done
 for term in "given" "when" "then" "Observed evidence" "201" "400" "404" \
   "not applicable" "documentary historical case" "not reproduced" \
   "pinned" "root cause unknown" "severity" "priority" "regression scope" \
-  "traceability" "STOP"; do
+  "traceability" "risk analysis" recommendation "approve/reject" \
+  "authorized executor" "approved action" "execution evidence" identity \
+  "approved scope" "operation id" "exit/output" "resulting state" "STOP"; do
   grep -R -qi "$term" artifacts/module-05 || exit 1
 done
 PYTHONPATH=projects/training-task-app/src python3 -m pytest projects/training-task-app/tests -q
@@ -137,7 +149,7 @@ disposition -> `STOP -> coordinator -> QA/SDET` для bounded evidence package;
 | Testable conditions и traceability | Нет source/check связи | Есть tests без risk/observation | Условия, source, check, risk, evidence и gaps видимы |
 | API/UI workflow | Layers смешаны | Есть command без полного evidence | Schema/service/UI branches и routing воспроизводимы |
 | Defect/flaky triage | Fixtures перепутаны | Есть label без facts/owner | Exact classification, runs, unknown cause, scope и owner |
-| Release gate | Green назван release | Есть checklist без traceability STOP | Matrix, output, disposition, risk/rollback, owners; missing data -> STOP |
+| Release gate | Green назван release | Нет chain/execution evidence | Matrix, output, disposition и risk/rollback; risk reviewer recommendation/STOP -> owner approve/reject -> отдельный executor -> полное execution evidence либо STOP before execution |
 
 Для зачета нужно не менее 8 из 8 и отсутствие критического дефекта.
 
@@ -149,7 +161,8 @@ disposition -> `STOP -> coordinator -> QA/SDET` для bounded evidence package;
 - **Layer confusion:** Python unit test выдан за HTTP endpoint или обязательный UI check выдуман без UI scope.
 - **Role violation:** QA/SDET self-approves release, risk reviewer дает final approval или reviewer/deployer выполняет действие вместо documented recommendation/final approval.
 - **Authority chain violation:** approver совпадает с executor-ом, authorized
-  executor не назван отдельно или отсутствует execution evidence.
+  executor не назван отдельно или execution evidence не содержит identity,
+  approved scope, operation id, exit/output и resulting state.
 - **Missing deterministic evidence:** нет exact command, environment/exit result или named receiver.
 
 ## Локальный маршрут исправления

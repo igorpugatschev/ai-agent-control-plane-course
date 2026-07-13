@@ -9,6 +9,15 @@
 3. [Маршрутизация coordinator и handoff](lesson-09-coordinator-handoff.md) - `artifacts/module-03/coordinator-handoff.md`.
 4. [Checkpoint 3](checkpoint.md) - проверка STOP и передачи при запросе вне permission implementer-а.
 
+## Нормативная privileged chain
+
+- Risk reviewer выполняет только risk analysis и возвращает recommendation или STOP.
+- Named human owner только approve/reject intended irreversible action.
+- Separately named authorized executor, отличный от named human owner и risk reviewer, выполняет ровно approved action.
+- Executor возвращает execution evidence: identity, approved scope, operation id, exit/output и resulting state.
+- Любой prepared STOP заканчивается before execution; после approve ветка
+  считается завершенной только после возврата execution evidence.
+
 ## Обязательный локальный маршрут
 
 Используйте накопленные `artifacts/module-01/control-plane-blueprint.md` и артефакты Module 2, а затем заполняйте локальные Markdown-файлы по шаблонам `templates/agent-role.md`, `templates/skill-contract.md` и `templates/handoff.md`. Обязательный путь не требует платного API-ключа или облачного аккаунта: уроки содержат подготовленные ответы и локальные проверки. Live prompt разрешен только как черновик; он не создает permission, approval или evidence.
