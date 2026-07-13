@@ -24,13 +24,17 @@ CURRICULUM_ENTRY_HEADING = "Перед началом"
 CURRICULUM_OFFLINE_NO_KEY_HEADING = "Обязательный offline/no-key режим"
 SELF_CONTAINED_RE = re.compile(r"самодостаточ\w*", re.IGNORECASE)
 LOCAL_CONTEXT_RE = re.compile(
-    r"\b(?:локальн\w*|репозитори\w*|offline)\b",
+    r"\b(?:локальн\w*|репозитори\w*|offline)\b|"
+    r"\bна\s+(?:своей|локальной)\s+машин\w*\b",
     re.IGNORECASE,
 )
-LOCAL_ACTION_RE = re.compile(
-    r"\b(?:использу\w*|прочита\w*|заполн\w*|созда\w*|провер\w*|запуст\w*|"
-    r"выполн\w*|сохран\w*|работа(?:ет|ют|йте))\b",
-    re.IGNORECASE,
+LOCAL_ACTION_PATTERN = (
+    r"(?:использу\w*|прочита\w*|откро\w*|заполн\w*|созда\w*|провер\w*|"
+    r"запуст\w*|выполн\w*|сохран\w*|работа(?:ет|ют|йте))"
+)
+LOCAL_ACTION_RE = re.compile(rf"\b{LOCAL_ACTION_PATTERN}\b", re.IGNORECASE)
+NEGATED_LOCAL_ACTION_RE = re.compile(
+    rf"\bне\s+{LOCAL_ACTION_PATTERN}\b", re.IGNORECASE
 )
 LOCAL_RESOURCE_RE = re.compile(
     r"`[^`\n]+`|\[[^]\n]+\]\([^)\n]+\)|"
@@ -38,25 +42,33 @@ LOCAL_RESOURCE_RE = re.compile(
     r"prepared|подготовлен\w*)\b",
     re.IGNORECASE,
 )
-PAID_DEPENDENCY_TARGET_RE = re.compile(
+PAID_ACCESS_RE = re.compile(
     r"\b(?:api[- ]?ключ\w*|paid\s+api\s+key|платн\w*\s+(?:api[- ]?)?ключ\w*|"
-    r"облак\w*|cloud(?:\s+(?:platform|account))?)\b",
+    r"платн\w*\s+(?:уч[её]тн\w*\s+запис\w*|аккаунт\w*|подписк\w*))\b",
+    re.IGNORECASE,
+)
+CLOUD_ACCESS_RE = re.compile(
+    r"\b(?:обла(?:к|ч)\w*|cloud(?:\s+(?:platform|account|service))?)\b",
     re.IGNORECASE,
 )
 DEPENDENCY_REQUIREMENT_RE = re.compile(
-    r"\b(?:обязател(?:ен|ьна|ьно|ьны)|необходим\w*|нуж(?:ен|на|но|ны)|"
-    r"требу(?:ется|ются|ет|ют)|required|must)\b",
+    r"\b(?:обязател\w*|необходим\w*|нуж\w*|понадоб\w*|требу\w*|required|must)\b",
     re.IGNORECASE,
 )
-NO_PAID_DEPENDENCY_RE = re.compile(
-    r"\bбез\b.{0,80}\b(?:api[- ]?ключ\w*|платн\w*\s+(?:api[- ]?)?ключ\w*|"
-    r"облак\w*|cloud(?:\s+(?:platform|account))?)\b|"
-    r"\bне\s+(?:требу\w*|нуж\w*|необходим\w*|обязател\w*)\b.{0,80}"
-    r"\b(?:api[- ]?ключ\w*|платн\w*\s+(?:api[- ]?)?ключ\w*|облачн\w*|cloud)\b|"
-    r"\b(?:api[- ]?ключ\w*|платн\w*\s+(?:api[- ]?)?ключ\w*|облачн\w*|cloud)\b"
-    r".{0,80}\bне\s+(?:требу\w*|нуж\w*|необходим\w*|обязател\w*)\b|"
-    r"\bno-key\b",
+DEPENDENCY_ABSENCE_RE = re.compile(
+    r"\bбез\b|\bno-key\b|"
+    r"\bне\s+(?:требу\w*|нуж\w*|понадоб\w*|необходим\w*|обязател\w*)\b|"
+    r"\b(?:not\s+required|not\s+needed)\b",
     re.IGNORECASE,
+)
+CLAUSE_SPLIT_RE = re.compile(
+    r"(?<=[.!?;:])\s+|\n[ \t]*\n+|,\s*(?:но|однако|а)\s+",
+    re.IGNORECASE,
+)
+NO_KEY_RE = re.compile(r"\bno-key\b", re.IGNORECASE)
+DEPENDENCIES = (
+    (PAID_ACCESS_RE, NO_KEY_RE, "платный API-ключ", "платного API-ключа"),
+    (CLOUD_ACCESS_RE, None, "облачную зависимость", "облачной зависимости"),
 )
 
 
@@ -74,14 +86,34 @@ def extract_level_two_section(text: str, heading: str) -> str | None:
     return extract_markdown_section(text, heading, level=2)
 
 
-def requires_paid_dependency(text: str) -> bool:
-    statements = re.split(r"(?<=[.!?])\s+|\n+", text)
-    return any(
-        PAID_DEPENDENCY_TARGET_RE.search(statement)
-        and DEPENDENCY_REQUIREMENT_RE.search(statement)
-        and not NO_PAID_DEPENDENCY_RE.search(statement)
-        for statement in statements
-    )
+def dependency_evidence(
+    text: str, target: re.Pattern[str], alias: re.Pattern[str] | None
+) -> tuple[bool, bool]:
+    absence = False
+    required = False
+    for clause in CLAUSE_SPLIT_RE.split(text):
+        if target.search(clause) is None and (alias is None or alias.search(clause) is None):
+            continue
+        if DEPENDENCY_ABSENCE_RE.search(clause):
+            absence = True
+        elif DEPENDENCY_REQUIREMENT_RE.search(clause):
+            required = True
+    return absence, required
+
+
+def validate_dependency_contract(
+    text: str, path: Path, *, require_absence: bool
+) -> list[str]:
+    errors: list[str] = []
+    for target, alias, required_label, absence_label in DEPENDENCIES:
+        absence, required = dependency_evidence(text, target, alias)
+        if required:
+            errors.append(f"{path}: обязательный маршрут требует {required_label}")
+        if require_absence and not absence:
+            errors.append(
+                f"{path}: нет явного подтверждения отсутствия {absence_label}"
+            )
+    return errors
 
 
 def validate_local_route(
@@ -89,20 +121,22 @@ def validate_local_route(
     path: Path,
     route_name: str,
     *,
-    require_no_paid_dependency: bool = False,
+    require_dependency_absence: bool = False,
 ) -> list[str]:
     errors: list[str] = []
+    positive_action_text = NEGATED_LOCAL_ACTION_RE.sub("", section)
     is_actionable = (
         LOCAL_CONTEXT_RE.search(section)
-        and LOCAL_ACTION_RE.search(section)
+        and LOCAL_ACTION_RE.search(positive_action_text)
         and LOCAL_RESOURCE_RE.search(section)
     )
     if not is_actionable:
         errors.append(f"{path}: {route_name} не описан")
-    if requires_paid_dependency(section):
-        errors.append(f"{path}: обязательный маршрут требует платный API-ключ/облако")
-    if require_no_paid_dependency and not NO_PAID_DEPENDENCY_RE.search(section):
-        errors.append(f"{path}: нет явного режима без платного API-ключа/облака")
+    errors.extend(
+        validate_dependency_contract(
+            section, path, require_absence=require_dependency_absence
+        )
+    )
     return errors
 
 
@@ -133,7 +167,14 @@ def validate_module(path: Path) -> list[str]:
         if local_route is None:
             errors.append(f"{path}: нет явного offline/no-key маршрута")
         else:
-            errors.extend(validate_local_route(local_route, path, "локальный маршрут"))
+            errors.extend(
+                validate_local_route(
+                    local_route,
+                    path,
+                    "локальный маршрут",
+                    require_dependency_absence=True,
+                )
+            )
     if not (path / "checkpoint.md").is_file():
         errors.append(f"{path}: нет checkpoint.md")
     if len(lessons) != 3:
@@ -164,15 +205,17 @@ def validate_course(root: Path) -> list[str]:
         )
         if not has_self_contained_route or offline_no_key_route is None:
             errors.append(f"{root}: нет self-contained политики")
-        if entry is not None and requires_paid_dependency(entry):
-            errors.append(f"{root}: обязательный маршрут требует платный API-ключ/облако")
+        if entry is not None:
+            errors.extend(
+                validate_dependency_contract(entry, root, require_absence=False)
+            )
         if offline_no_key_route is not None:
             errors.extend(
                 validate_local_route(
                     offline_no_key_route,
                     root,
                     "локальный offline/no-key маршрут",
-                    require_no_paid_dependency=True,
+                    require_dependency_absence=True,
                 )
             )
     if len(modules) != 7:

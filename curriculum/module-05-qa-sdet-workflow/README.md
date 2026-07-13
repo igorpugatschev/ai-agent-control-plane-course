@@ -13,7 +13,7 @@
 
 Сначала прочитайте локальные `requirements.md`, `api/openapi.yaml`, `tests/test_service.py`, `scenarios/defect-report.md` и `scenarios/flaky-run.log` внутри `projects/training-task-app/`. Затем используйте contracts [QA/SDET](../../agents/qa-sdet.md), [risk reviewer](../../agents/risk-reviewer.md), [workflow](../../templates/workflow.md), [review-gate](../../templates/review-gate.md) и [handoff](../../templates/handoff.md).
 
-Обязательный маршрут полностью локальный и не требует API-ключа. В каждом уроке есть prepared output, точные пути, проверка и correction route. Live prompt допустим только после offline-практики: он создаёт черновик, а не evidence, permission, approval или release decision.
+Обязательный маршрут полностью локальный и не требует платного API-ключа или облачного аккаунта. В каждом уроке есть prepared output, точные пути, проверка и correction route. Live prompt допустим только после offline-практики: он создаёт черновик, а не evidence, permission, approval или release decision.
 
 ## Готовность модуля
 

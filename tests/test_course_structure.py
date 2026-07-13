@@ -25,6 +25,19 @@ def write_complete_curriculum(path, readme_text: str):
         write_complete_module(path / f"module-{number:02d}-topic")
 
 
+def curriculum_readme(offline_route: str) -> str:
+    return f"""## Перед началом
+
+Обязательный маршрут самодостаточен и хранится локально в репозитории.
+
+## Два режима выполнения
+
+### Обязательный offline/no-key режим
+
+{offline_route}
+"""
+
+
 def write_complete_lesson(path, result: str = "Артефакт: `artifacts/module/output.md`."):
     sections = list(REQUIRED_SECTIONS)
     sections[0] = f"{sections[0]}\n\n{result}"
@@ -145,12 +158,103 @@ def test_module_rejects_a_paid_key_as_mandatory(tmp_path):
 """,
     )
 
-    assert any("требует платный API-ключ/облако" in error for error in validate_module(module))
+    assert any("требует платный API-ключ" in error for error in validate_module(module))
 
 
 def test_module_accepts_a_paraphrased_local_no_paid_key_route(tmp_path):
     module = tmp_path / "module-01-foundations"
     write_complete_module(module)
+
+    assert validate_module(module) == []
+
+
+def test_module_rejects_paid_key_absence_with_mandatory_cloud(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(
+        module,
+        """## Обязательный локальный маршрут
+
+Прочитайте локальный Markdown-файл и запустите pytest.
+API-ключ не требуется, но облачный аккаунт обязателен.
+""",
+    )
+
+    assert any("требует облачную зависимость" in error for error in validate_module(module))
+
+
+def test_module_requires_explicit_paid_key_independence(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(
+        module,
+        """## Обязательный локальный маршрут
+
+Прочитайте локальный Markdown-файл и запустите pytest.
+Облачный сервис не понадобится.
+""",
+    )
+
+    assert any(
+        "нет явного подтверждения отсутствия платного API-ключа" in error
+        for error in validate_module(module)
+    )
+
+
+def test_module_requires_explicit_cloud_independence(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(
+        module,
+        """## Обязательный локальный маршрут
+
+Прочитайте локальный Markdown-файл и запустите pytest.
+Платный API-ключ не понадобится.
+""",
+    )
+
+    assert any(
+        "нет явного подтверждения отсутствия облачной зависимости" in error
+        for error in validate_module(module)
+    )
+
+
+def test_module_rejects_a_negated_route_action(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(
+        module,
+        """## Обязательный локальный маршрут
+
+Этот локальный no-key маршрут не работает: команда отсутствует.
+Платный API-ключ и облачный сервис не понадобятся.
+""",
+    )
+
+    assert any("локальный маршрут не описан" in error for error in validate_module(module))
+
+
+def test_module_accepts_machine_and_account_paraphrases(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(
+        module,
+        """## Обязательный локальный маршрут
+
+На своей машине откройте Markdown-файл и запустите pytest.
+Платная учетная запись и облачный сервис не понадобятся.
+""",
+    )
+
+    assert validate_module(module) == []
+
+
+def test_module_accepts_a_soft_wrapped_dependency_clause(tmp_path):
+    module = tmp_path / "module-01-foundations"
+    write_complete_module(
+        module,
+        """## Обязательный локальный маршрут
+
+Прочитайте локальный Markdown-файл и запустите pytest.
+Не нужны
+платный API-ключ и облачный сервис.
+""",
+    )
 
     assert validate_module(module) == []
 
@@ -224,7 +328,7 @@ def test_curriculum_rejects_cloud_access_as_mandatory(tmp_path):
 """,
     )
 
-    assert any("требует платный API-ключ/облако" in error for error in validate_course(curriculum))
+    assert any("требует облачную зависимость" in error for error in validate_course(curriculum))
 
 
 def test_curriculum_rejects_a_paid_key_in_the_entry_policy(tmp_path):
@@ -245,7 +349,7 @@ API-ключ и облачный аккаунт для этого пути не 
 """,
     )
 
-    assert any("требует платный API-ключ/облако" in error for error in validate_course(curriculum))
+    assert any("требует платный API-ключ" in error for error in validate_course(curriculum))
 
 
 def test_curriculum_accepts_a_paraphrased_self_contained_no_paid_key_route(tmp_path):
@@ -263,6 +367,32 @@ def test_curriculum_accepts_a_paraphrased_self_contained_no_paid_key_route(tmp_p
 Пройдите задания по локальным файлам, сохраните Markdown-артефакты и запустите pytest.
 Платный API-ключ и облачный аккаунт для этого пути не требуются.
 """,
+    )
+
+    assert validate_course(curriculum) == []
+
+
+def test_curriculum_rejects_paid_key_absence_with_mandatory_cloud(tmp_path):
+    curriculum = tmp_path / "curriculum"
+    write_complete_curriculum(
+        curriculum,
+        curriculum_readme(
+            """Прочитайте локальный Markdown-файл и запустите pytest.
+API-ключ не требуется, но облачный аккаунт обязателен."""
+        ),
+    )
+
+    assert any("требует облачную зависимость" in error for error in validate_course(curriculum))
+
+
+def test_curriculum_accepts_machine_and_account_paraphrases(tmp_path):
+    curriculum = tmp_path / "curriculum"
+    write_complete_curriculum(
+        curriculum,
+        curriculum_readme(
+            """На своей машине откройте Markdown-файл и запустите pytest.
+Платная учетная запись и облачный сервис не понадобятся."""
+        ),
     )
 
     assert validate_course(curriculum) == []

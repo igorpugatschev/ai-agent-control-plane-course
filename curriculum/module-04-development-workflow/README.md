@@ -13,7 +13,7 @@
 
 Начните с `artifacts/module-02/context-packet.md`, `artifacts/module-02/context-map-evidence-gate.md` и `artifacts/module-03/coordinator-handoff.md`. Затем прочитайте `projects/training-task-app/requirements.md`, `src/task_app/models.py`, `src/task_app/service.py`, `tests/test_service.py`, `api/openapi.yaml` и `README.md`. Форму процесса и независимой проверки берите из `templates/workflow.md` и `templates/review-gate.md`.
 
-Обязательный путь полностью локальный: уроки дают request, подготовленные ответы и проверяемые команды. Live agent допустим только для черновика. Его текст не является acceptance, approval, test evidence или commit evidence. Implementation вносит только согласованную обратимую правку; reviewer независимо выдает verdict; approval commit или внешнего действия не появляется из green test и не принадлежит implementation.
+Обязательный путь полностью локальный и не требует платного API-ключа или облачного аккаунта: уроки дают request, подготовленные ответы и проверяемые команды. Live agent допустим только для черновика. Его текст не является acceptance, approval, test evidence или commit evidence. Implementation вносит только согласованную обратимую правку; reviewer независимо выдает verdict; approval commit или внешнего действия не появляется из green test и не принадлежит implementation.
 
 ## Готовность модуля
 
