@@ -24,7 +24,7 @@ class TaskService:
         return [self._tasks[task_id] for task_id in sorted(self._tasks)]
 
     def complete_task(self, task_id: int) -> Task:
-        if task_id not in self._tasks:
+        if type(task_id) is not int or task_id not in self._tasks:
             raise KeyError(f"Задача {task_id} не найдена")
         self._tasks[task_id].status = TaskStatus.DONE
         return self._tasks[task_id]

@@ -24,7 +24,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Task'
         '400':
-          description: Название пустое или уже занято активной задачей
+          description: Название пустое или уже занято активной задачей; сравнение активных названий выполняется без учёта регистра
           content:
             application/json:
               schema:
@@ -84,8 +84,9 @@ components:
       properties:
         title:
           type: string
-          description: Название задачи; внешние пробелы удаляются
+          description: Название задачи; внешние пробелы удаляются, активные названия сравниваются без учёта регистра, а после завершения задачи название можно использовать снова
           minLength: 1
+          pattern: '.*\S.*'
           example: Проверить контракт
     Task:
       type: object
